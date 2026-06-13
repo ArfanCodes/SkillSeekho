@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Search, Mic, ArrowRight } from 'lucide-react';
-import { exampleSkills } from '../utils/mockData';
+import { useCategories } from '../hooks/queries/useCatalogue';
 
 export default function HeroSection() {
+  const navigate = useNavigate();
+  const { data: categories = [] } = useCategories();
   const [query, setQuery] = useState('');
-  const [listening, setListening] = useState(false);
+
+  const runSearch = (q: string) => {
+    const term = q.trim();
+    navigate(term ? `/discover?q=${encodeURIComponent(term)}` : '/discover');
+  };
 
   return (
     <section className="relative overflow-hidden px-6 py-16 md:py-24">
@@ -42,15 +49,15 @@ export default function HeroSection() {
           style={{ border: '1.5px solid #E5E7EB', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           <Search size={18} className="ml-3 text-gray-400 flex-shrink-0" />
           <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') runSearch(query); }}
             placeholder="Search a skill, teacher or neighbourhood…"
             className="flex-1 px-3 py-2 text-sm text-gray-800 bg-transparent outline-none placeholder-gray-400" />
-          <motion.button onClick={() => setListening((v) => !v)} whileTap={{ scale: 0.92 }}
-            className={`flex items-center justify-center w-10 h-10 rounded-xl mr-1 transition-all ${
-              listening ? 'bg-red-500 text-white shadow-lg shadow-red-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`} aria-label="Voice search">
+          <motion.button onClick={() => navigate('/voice')} whileTap={{ scale: 0.92 }}
+            className="flex items-center justify-center w-10 h-10 rounded-xl mr-1 transition-all bg-gray-100 text-gray-500 hover:bg-gray-200"
+            aria-label="Voice search">
             <Mic size={16} strokeWidth={2} />
           </motion.button>
-          <motion.button whileTap={{ scale: 0.95 }}
+          <motion.button onClick={() => runSearch(query)} whileTap={{ scale: 0.95 }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
             style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
             Search <ArrowRight size={14} />
@@ -60,15 +67,15 @@ export default function HeroSection() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
           className="flex flex-wrap justify-center gap-2">
           <span className="text-xs text-gray-400 self-center">Try:</span>
-          {exampleSkills.map((skill, i) => (
-            <motion.button key={skill}
+          {categories.slice(0, 6).map((cat, i) => (
+            <motion.button key={cat.id}
               initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.45 + i * 0.06 }}
               whileHover={{ scale: 1.05 }}
-              onClick={() => setQuery(skill)}
+              onClick={() => runSearch(cat.name)}
               className="text-xs px-3 py-1.5 rounded-full font-medium transition-all"
               style={{ backgroundColor: '#F9FAFB', border: '1px solid #E5E7EB', color: '#374151' }}>
-              {skill}
+              {cat.name}
             </motion.button>
           ))}
         </motion.div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Menu, Zap } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
+import LocationPrompt from '../components/LocationPrompt';
 import { useAuth } from '../hooks/useAuth';
 
 export default function MainLayout() {
@@ -11,6 +12,7 @@ export default function MainLayout() {
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: '#F9FAFB' }}>
+      <LocationPrompt />
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <div className="flex-1 flex flex-col md:ml-[260px] min-w-0">
