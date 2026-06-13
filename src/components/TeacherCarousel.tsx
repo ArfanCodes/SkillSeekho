@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import TeacherCard from './TeacherCard';
-import type { Mentor } from '../types';
+import SkillTeacherCard from './SkillTeacherCard';
+import type { SkillWithTeacher } from '../types';
 
 interface Props {
-  teachers?: Mentor[];
+  teachers?: SkillWithTeacher[];
   title?: string;
   subtitle?: string;
   headerRight?: React.ReactNode;
@@ -92,7 +92,7 @@ export default function TeacherCarousel({ teachers = [], title, subtitle, header
             transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{ gridTemplateColumns: `repeat(${cardsPerView}, 1fr)` }}>
             {visible.map((teacher, i) => (
-              <TeacherCard key={teacher.id} mentor={teacher} index={i} />
+              <SkillTeacherCard key={teacher.id} skill={teacher} index={i} />
             ))}
           </motion.div>
         </AnimatePresence>

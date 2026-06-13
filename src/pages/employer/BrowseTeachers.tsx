@@ -1,9 +1,15 @@
 import { motion } from 'framer-motion';
 import { Users } from 'lucide-react';
 import TeacherCarousel from '../../components/TeacherCarousel';
-import { mentors } from '../../utils/mockData';
+import { useGeolocation } from '../../hooks/useGeolocation';
+import { useNearbySkills } from '../../hooks/queries/useCatalogue';
 
 export default function EmpTeachers() {
+  const geo = useGeolocation();
+  // Employers hire verified professionals → show verified listings first.
+  const { data: verified = [] } = useNearbySkills({ lat: geo.lat, lng: geo.lng, verifiedOnly: true });
+  const { data: all = [] } = useNearbySkills({ lat: geo.lat, lng: geo.lng });
+
   return (
     <div className="min-h-screen py-14">
       <div className="px-6 max-w-5xl mx-auto mb-8">
@@ -12,7 +18,11 @@ export default function EmpTeachers() {
           <p className="text-gray-500">Browse skill experts you can hire directly.</p>
         </motion.div>
       </div>
-      <TeacherCarousel teachers={mentors} title="All Verified Teachers" />
+
+      {verified.length > 0 && (
+        <TeacherCarousel teachers={verified} title="Verified Teachers" subtitle="Identity-verified professionals" />
+      )}
+      <TeacherCarousel teachers={all} title="All Teachers" subtitle="Every local expert near you" />
     </div>
   );
 }

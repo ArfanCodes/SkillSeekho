@@ -1,10 +1,21 @@
 import { motion } from 'framer-motion';
-import type { SkillCategory } from '../types';
+import { useNavigate } from 'react-router-dom';
+import {
+  Camera, ChefHat, Scissors, MessageCircle, Music, Leaf, Code2, Palette, Sparkles,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { Category } from '../types';
 
-interface Props { skill: SkillCategory; index?: number; }
+const ICONS: Record<string, LucideIcon> = {
+  Camera, ChefHat, Scissors, MessageCircle, Music, Leaf, Code2, Palette,
+};
+
+interface Props { skill: Category; index?: number; }
 
 export default function SkillCard({ skill, index = 0 }: Props) {
-  const { name, count, color, bg, image } = skill;
+  const navigate = useNavigate();
+  const { id, name, count, color, bg, image_url, icon } = skill;
+  const Icon = ICONS[icon] ?? Sparkles;
 
   return (
     <motion.button
@@ -14,12 +25,15 @@ export default function SkillCard({ skill, index = 0 }: Props) {
       transition={{ delay: index * 0.05, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -8, scale: 1.04 }}
       whileTap={{ scale: 0.97 }}
+      onClick={() => navigate(`/discover?category=${id}`)}
       className="skill-card">
-      <div className="skill-card__image-area" style={{ backgroundColor: bg }}>
-        <img src={image} alt={name} className="skill-card__image" loading="lazy" />
+      <div className="skill-card__image-area flex items-center justify-center" style={{ backgroundColor: bg }}>
+        {image_url
+          ? <img src={image_url} alt={name} className="skill-card__image" loading="lazy" />
+          : <Icon size={40} color={color} strokeWidth={1.8} />}
         <div className="skill-card__count-pill">
           <span className="skill-card__count-dot" style={{ backgroundColor: color }} />
-          {count} teachers
+          {count ?? 0} {count === 1 ? 'teacher' : 'teachers'}
         </div>
       </div>
       <div className="skill-card__label">

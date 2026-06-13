@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { GeolocationProvider } from './hooks/useGeolocation';
 import { useAuth } from './hooks/useAuth';
 import MainLayout from './layouts/MainLayout';
 
@@ -13,6 +14,7 @@ import ProfileSetup from './pages/auth/ProfileSetup';
 // Public pages (no login needed)
 import Home             from './pages/Home';
 import Discover         from './pages/Discover';
+import SkillDetail      from './pages/SkillDetail';
 import VoiceOnboarding  from './pages/VoiceOnboarding';
 import SkillArchive     from './pages/SkillArchive';
 
@@ -94,6 +96,7 @@ function AppRoutes() {
       <Route element={<MainLayout />}>
         <Route path="/"         element={<Home />} />
         <Route path="/discover" element={<Discover />} />
+        <Route path="/skill/:id" element={<SkillDetail />} />
         <Route path="/voice"    element={<VoiceOnboarding />} />
         <Route path="/archive"  element={<SkillArchive />} />
         <Route path="/profile"  element={<Profile />} />
@@ -127,7 +130,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <GeolocationProvider>
+          <AppRoutes />
+        </GeolocationProvider>
       </AuthProvider>
     </BrowserRouter>
   );

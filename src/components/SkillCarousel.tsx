@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SkillCard from './SkillCard';
-import type { SkillCategory } from '../types';
+import type { Category } from '../types';
 
 interface Props {
-  skills?: SkillCategory[];
+  skills?: Category[];
   title?: string;
   subtitle?: string;
   headerRight?: React.ReactNode;

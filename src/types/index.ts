@@ -29,7 +29,95 @@ export interface Profile {
   updated_at: string;
 }
 
-// ── Teachers / Mentors ────────────────────────
+// ── Catalogue: Categories & Skills ────────────
+
+export interface Category {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string;          // lucide-react icon name
+  color: string;
+  bg: string;
+  image_url: string | null;
+  sort_order: number;
+  active: boolean;
+  count?: number;        // joined from category_skill_counts view
+}
+
+export interface Skill {
+  id: string;
+  teacher_id: string;
+  category_id: string | null;
+  title: string;
+  description: string | null;
+  price_per_session: number;   // whole rupees
+  currency: string;
+  tags: string[];
+  languages: string[];
+  availability: string | null;
+  location_name: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  cover_image_url: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Row shape returned by the nearby_skills() RPC: skill + teacher + aggregates.
+export interface SkillWithTeacher {
+  id: string;
+  teacher_id: string;
+  category_id: string | null;
+  title: string;
+  description: string | null;
+  price_per_session: number;
+  currency: string;
+  tags: string[];
+  languages: string[];
+  availability: string | null;
+  location_name: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  cover_image_url: string | null;
+  teacher_name: string | null;
+  teacher_avatar_url: string | null;
+  teacher_verified: boolean;
+  avg_rating: number;
+  review_count: number;
+  vouch_count: number;
+  distance_km: number | null;
+}
+
+export interface SkillFilters {
+  lat?: number | null;
+  lng?: number | null;
+  radiusKm?: number | null;
+  categoryId?: string | null;
+  maxPrice?: number | null;
+  verifiedOnly?: boolean;
+  search?: string | null;
+}
+
+export interface Review {
+  id: string;
+  skill_id: string;
+  teacher_id: string;
+  learner_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface Vouch {
+  id: string;
+  teacher_id: string;
+  voucher_id: string;
+  note: string | null;
+  created_at: string;
+}
+
+// ── Teachers / Mentors (legacy mock shape) ────
 
 export interface Mentor {
   id: number;
