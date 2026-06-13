@@ -253,12 +253,52 @@ export interface Job {
 
 // ── Voice Pipeline ────────────────────────────
 
-export interface VoiceIntent {
+export interface SearchIntent {
+  mode: 'search';
   skill: string;
-  category: string;
-  language: string;
-  rawTranscript: string;
+  category_slug: string | null;
+  maxPrice: number | null;
+  area: string | null;
 }
+
+export interface ListingIntent {
+  mode: 'listing';
+  title: string;
+  category_slug: string;
+  price_per_session: number;
+  tags: string[];
+  availability: string | null;
+  description: string | null;
+}
+
+export interface OnboardingIntent {
+  mode: 'onboarding';
+  profile: {
+    name: string;
+    bio: string;
+    languages: string[];
+    location_name: string | null;
+    availability: string | null;
+  };
+  skill: {
+    title: string;
+    category_slug: string;
+    price_per_session: number;
+    tags: string[];
+    availability: string | null;
+  };
+}
+
+export interface ProfileIntent {
+  mode: 'profile';
+  name: string;
+  bio: string | null;
+  location_name: string | null;
+  languages: string[];
+  availability: string | null;
+}
+
+export type VoiceIntent = SearchIntent | ListingIntent | OnboardingIntent | ProfileIntent;
 
 // ── API Response wrapper ──────────────────────
 

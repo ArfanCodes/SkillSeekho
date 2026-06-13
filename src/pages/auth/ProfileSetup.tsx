@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { User, MapPin, Globe, ArrowRight, Building2, Mic2 } from 'lucide-react';
 import { completeOnboarding } from '../../lib/api/auth';
 import { useAuth } from '../../hooks/useAuth';
+import VoicePrefillBar from '../../components/VoicePrefillBar';
+import type { ProfileIntent, ListingIntent } from '../../types';
 
 const LANGUAGES = ['Hindi', 'English', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Marathi', 'Bengali', 'Gujarati', 'Punjabi', 'Urdu'];
 
@@ -63,6 +65,15 @@ export default function ProfileSetup() {
     }
   };
 
+  function handleVoiceFilled(data: ProfileIntent | ListingIntent) {
+    if (data.mode !== 'profile') return;
+    if (data.name)          setName(data.name);
+    if (data.bio)           setBio(data.bio);
+    if (data.location_name) setLocationName(data.location_name);
+    if (data.languages?.length) setSelectedLangs(data.languages.filter((l) => LANGUAGES.includes(l)));
+    if (data.availability && role === 'professional') setAvailability(data.availability);
+  }
+
   const roleLabel = role === 'professional' ? 'Teacher' : role === 'employer' ? 'Employer' : 'Learner';
   const RoleIcon = role === 'professional' ? Mic2 : role === 'employer' ? Building2 : User;
 
@@ -83,6 +94,10 @@ export default function ProfileSetup() {
           </h1>
           <p className="text-gray-500 text-sm">You can update these anytime in Settings.</p>
         </div>
+
+        {role !== 'employer' && (
+          <VoicePrefillBar mode="profile" onFilled={handleVoiceFilled} />
+        )}
 
         <div className="bg-white rounded-3xl p-8 shadow-sm" style={{ border: '1px solid #E5E7EB' }}>
           <form onSubmit={handleSubmit} className="space-y-5">

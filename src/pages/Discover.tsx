@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Compass, SlidersHorizontal, MapPin, ShieldCheck, X, Search, LocateFixed } from 'lucide-react';
+import { Compass, SlidersHorizontal, MapPin, ShieldCheck, X, Search, LocateFixed, Mic } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useCategories, useNearbySkills } from '../hooks/queries/useCatalogue';
 import SkillTeacherCard from '../components/SkillTeacherCard';
 import TeacherMap from '../components/TeacherMap';
 
 export default function Discover() {
+  const navigate = useNavigate();
   const geo = useGeolocation();
   const { data: categories = [] } = useCategories();
   const [params] = useSearchParams();
@@ -60,6 +61,13 @@ export default function Discover() {
             placeholder="Search a skill, teacher or tag…"
             className="flex-1 text-sm text-gray-800 bg-transparent outline-none placeholder-gray-400 min-w-0" />
           {search && <button onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600"><X size={15} /></button>}
+          <motion.button
+            onClick={() => navigate('/voice')}
+            whileTap={{ scale: 0.88 }}
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors flex-shrink-0"
+            aria-label="Voice search">
+            <Mic size={15} />
+          </motion.button>
         </div>
 
         {/* Map */}
