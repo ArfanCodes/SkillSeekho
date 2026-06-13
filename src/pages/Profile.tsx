@@ -27,6 +27,16 @@ export default function Profile() {
       setLocationName(profile.location_name ?? '');
       setAvatarUrl(profile.avatar_url ?? '');
       setAvatarInput(profile.avatar_url ?? '');
+    } else {
+      const savedProfile = localStorage.getItem('mock_profile');
+      if (savedProfile) {
+        const p = JSON.parse(savedProfile);
+        setUsername(p.name ?? '');
+        setPhone(p.phone ?? '');
+        setLocationName(p.location_name ?? '');
+        setAvatarUrl(p.avatar_url ?? '');
+        setAvatarInput(p.avatar_url ?? '');
+      }
     }
   }, [profile]);
 
@@ -42,19 +52,43 @@ export default function Profile() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     setLoading(true);
     setError('');
     setSuccess(false);
 
     try {
-      await updateProfile(user.id, {
-        name: username,
-        phone: phone || null,
-        location_name: locationName || null,
-        avatar_url: avatarUrl || null,
-      });
-      await refreshProfile();
+      if (isAuthenticated && user) {
+        await updateProfile(user.id, {
+          name: username,
+          phone: phone || null,
+          location_name: locationName || null,
+          avatar_url: avatarUrl || null,
+        });
+        await refreshProfile();
+      } else {
+        const localProfile = {
+          id: 'guest-user-id',
+          name: username,
+          phone: phone || null,
+          role: 'customer' as const,
+          avatar_url: avatarUrl || null,
+          bio: 'Guest user profile',
+          languages: ['English'],
+          location_lat: 12.9352,
+          location_lng: 77.6245,
+          location_name: locationName || 'Bangalore, India',
+          verified: false,
+          onboarding_complete: true,
+          availability: null,
+          company_name: null,
+          company_type: null,
+          website: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        localStorage.setItem('mock_profile', JSON.stringify(localProfile));
+        await refreshProfile();
+      }
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (err: unknown) {
@@ -194,7 +228,7 @@ export default function Profile() {
 
             <button
               type="submit"
-              disabled={loading || !isAuthenticated}
+              disabled={loading}
               className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
             >

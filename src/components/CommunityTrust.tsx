@@ -25,6 +25,14 @@ export default function CommunityTrust() {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5 }}
           className="text-center mb-12">
+          {/* Overlapping avatar stack representing community trust & vouches */}
+          <div className="flex justify-center -space-x-2.5 mb-4">
+            <img className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80" alt="Community Member" />
+            <img className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80" alt="Community Member" />
+            <img className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80" alt="Community Member" />
+            <img className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80" alt="Community Member" />
+            <div className="w-8 h-8 rounded-full border-2 border-gray-900 bg-green-500 flex items-center justify-center text-[10px] font-bold text-white" style={{ fontFamily: 'Outfit, sans-serif' }}>+89k</div>
+          </div>
           <h2 className="text-3xl md:text-4xl font-black text-white mb-4" style={{ fontFamily: 'Outfit, sans-serif' }}>
             Real learners. Real reviews.
           </h2>
@@ -66,8 +74,16 @@ export default function CommunityTrust() {
                   ))}
                 </div>
                 <div className="flex items-center gap-3 pt-3 border-t border-gray-700">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ backgroundColor: COLORS[i % COLORS.length] }}>{initials(t.learner_name)}</div>
+                  {t.learner_avatar_url ? (
+                    <img
+                      src={t.learner_avatar_url}
+                      alt={t.learner_name ?? 'Learner'}
+                      className="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-gray-600"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                      style={{ backgroundColor: COLORS[i % COLORS.length] }}>{initials(t.learner_name)}</div>
+                  )}
                   <div>
                     <p className="text-sm font-semibold text-white">{t.learner_name ?? 'Learner'}</p>
                     <p className="text-xs text-gray-500">Learned {t.skill_title} from {t.teacher_name}</p>

@@ -30,6 +30,10 @@ export async function signUpWithEmail(params: {
       location_name: 'Koramangala, Bangalore',
       verified: true,
       onboarding_complete: true,
+      availability: null,
+      company_name: null,
+      company_type: null,
+      website: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -90,6 +94,10 @@ export async function signInWithEmail(email: string, password: string) {
       location_name: 'Koramangala, Bangalore',
       verified: true,
       onboarding_complete: true,
+      availability: null,
+      company_name: null,
+      company_type: null,
+      website: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

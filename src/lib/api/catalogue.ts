@@ -2,10 +2,31 @@ import { supabase } from '../supabase';
 import type {
   Category, Skill, SkillWithTeacher, SkillFilters, Review, Vouch,
 } from '../../types';
+import { mentors, skillCategories } from '../../utils/mockData';
+
+// Helper to determine if we are running in local mock development mode
+const checkMockMode = () => {
+  return !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+};
 
 // ── Categories ────────────────────────────────
 
 export async function listCategories(): Promise<Category[]> {
+  if (checkMockMode()) {
+    return skillCategories.map((c) => ({
+      id: String(c.id),
+      slug: c.name.toLowerCase(),
+      name: c.name,
+      icon: c.icon,
+      color: c.color,
+      bg: c.bg,
+      image_url: c.image ?? null,
+      sort_order: c.id,
+      active: true,
+      count: c.count,
+    }));
+  }
+
   const [{ data: cats, error }, { data: counts }] = await Promise.all([
     supabase.from('categories').select('*').eq('active', true).order('sort_order'),
     supabase.from('category_skill_counts').select('*'),
@@ -18,6 +39,55 @@ export async function listCategories(): Promise<Category[]> {
 // ── Skills (catalogue browse) ─────────────────
 
 export async function nearbySkills(filters: SkillFilters = {}): Promise<SkillWithTeacher[]> {
+  if (checkMockMode()) {
+    let list: SkillWithTeacher[] = mentors.map((m) => ({
+      id: String(m.id),
+      teacher_id: `teacher-${m.id}`,
+      category_id: m.category.toLowerCase(),
+      title: m.skill,
+      description: m.bio,
+      price_per_session: m.pricePerSession,
+      currency: m.currency === '₹' ? 'INR' : m.currency,
+      tags: m.tags,
+      languages: m.languages,
+      availability: m.availability,
+      location_name: m.location,
+      location_lat: 12.93 + m.id * 0.005,
+      location_lng: 77.62 + m.id * 0.005,
+      cover_image_url: m.photo || null,
+      teacher_name: m.name,
+      teacher_avatar_url: m.photo || null,
+      teacher_verified: m.verified,
+      avg_rating: m.rating,
+      review_count: m.reviews,
+      vouch_count: m.vouches,
+      distance_km: parseFloat(m.distance),
+    }));
+
+    if (filters.categoryId) {
+      const catId = filters.categoryId;
+      const cat = skillCategories.find((c) => String(c.id) === catId || c.name.toLowerCase() === catId.toLowerCase());
+      if (cat) {
+        list = list.filter((item) => item.category_id === cat.name.toLowerCase());
+      }
+    }
+    if (filters.verifiedOnly) {
+      list = list.filter((item) => item.teacher_verified);
+    }
+    if (filters.maxPrice != null) {
+      list = list.filter((item) => item.price_per_session <= filters.maxPrice!);
+    }
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      list = list.filter((item) =>
+        item.title.toLowerCase().includes(q) ||
+        item.teacher_name?.toLowerCase().includes(q) ||
+        item.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }
+
   const { data, error } = await supabase.rpc('nearby_skills', {
     p_lat: filters.lat ?? null,
     p_lng: filters.lng ?? null,
@@ -32,7 +102,11 @@ export async function nearbySkills(filters: SkillFilters = {}): Promise<SkillWit
 }
 
 export async function getSkill(id: string): Promise<SkillWithTeacher | null> {
-  // Reuse the RPC (no location) so the detail page gets the same aggregates.
+  if (checkMockMode()) {
+    const list = await nearbySkills();
+    return list.find((s) => s.id === id) ?? null;
+  }
+
   const { data, error } = await supabase.rpc('nearby_skills', { p_search: null });
   if (error) throw new Error(error.message);
   return ((data ?? []) as SkillWithTeacher[]).find((s) => s.id === id) ?? null;
@@ -41,6 +115,10 @@ export async function getSkill(id: string): Promise<SkillWithTeacher | null> {
 // ── Teacher's own skills (MySkills CRUD) ──────
 
 export async function getTeacherSkills(teacherId: string): Promise<Skill[]> {
+  if (checkMockMode()) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('skills')
     .select('*')
@@ -133,6 +211,15 @@ export interface CatalogueStats {
 }
 
 export async function getCatalogueStats(): Promise<CatalogueStats> {
+  if (checkMockMode()) {
+    return {
+      teachers: 12400,
+      skills: 340,
+      vouches: 89200,
+      reviews: 2100,
+    };
+  }
+
   const head = { count: 'exact' as const, head: true };
   const [teachers, skills, vouches, reviews] = await Promise.all([
     supabase.from('profiles').select('id', head).eq('role', 'professional'),
@@ -154,17 +241,56 @@ export interface CommunityReview {
   comment: string | null;
   created_at: string;
   learner_name: string | null;
+  learner_avatar_url: string | null;
   teacher_name: string | null;
   skill_title: string | null;
   skill_id: string;
 }
 
 export async function listRecentReviews(limit = 12): Promise<CommunityReview[]> {
+  if (checkMockMode()) {
+    return [
+      {
+        id: 'mock-rev-1',
+        rating: 5,
+        comment: 'Priya taught me more in 3 sessions than months of YouTube tutorials. She is patient and incredibly skilled. I already shot my first paid gig!',
+        created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+        learner_name: 'Ananya Roy',
+        learner_avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+        teacher_name: 'Priya Sharma',
+        skill_title: 'Photography',
+        skill_id: '1'
+      },
+      {
+        id: 'mock-rev-2',
+        rating: 5,
+        comment: "The dum biryani recipe was a family secret he graciously shared. My family couldn't believe I cooked it. Arjun is a master teacher.",
+        created_at: new Date(Date.now() - 86400000 * 7).toISOString(),
+        learner_name: 'Deepak Iyer',
+        learner_avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        teacher_name: 'Arjun Mehta',
+        skill_title: 'Biryani Making',
+        skill_id: '2'
+      },
+      {
+        id: 'mock-rev-3',
+        rating: 5,
+        comment: 'I was terrified of speaking in meetings. After 2 months with Ravi, I presented to 50 people and got a promotion. Life-changing!',
+        created_at: new Date(Date.now() - 86400000 * 12).toISOString(),
+        learner_name: 'Fatima Khan',
+        learner_avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+        teacher_name: 'Ravi Nair',
+        skill_title: 'Spoken English',
+        skill_id: '4'
+      }
+    ].slice(0, limit);
+  }
+
   const { data, error } = await supabase
     .from('reviews')
     .select(`
       id, rating, comment, created_at, skill_id,
-      learner:profiles!reviews_learner_id_fkey(name),
+      learner:profiles!reviews_learner_id_fkey(name, avatar_url),
       teacher:profiles!reviews_teacher_id_fkey(name),
       skill:skills!reviews_skill_id_fkey(title)
     `)
@@ -174,13 +300,14 @@ export async function listRecentReviews(limit = 12): Promise<CommunityReview[]> 
   if (error) throw new Error(error.message);
   type Row = {
     id: string; rating: number; comment: string | null; created_at: string; skill_id: string;
-    learner: { name: string | null } | null;
+    learner: { name: string | null; avatar_url: string | null } | null;
     teacher: { name: string | null } | null;
     skill: { title: string | null } | null;
   };
   return (data as unknown as Row[] ?? []).map((r) => ({
     id: r.id, rating: r.rating, comment: r.comment, created_at: r.created_at, skill_id: r.skill_id,
     learner_name: r.learner?.name ?? null,
+    learner_avatar_url: r.learner?.avatar_url ?? null,
     teacher_name: r.teacher?.name ?? null,
     skill_title: r.skill?.title ?? null,
   }));
