@@ -14,13 +14,12 @@ import ProfileSetup from './pages/auth/ProfileSetup';
 import Home             from './pages/Home';
 import Discover         from './pages/Discover';
 import VoiceOnboarding  from './pages/VoiceOnboarding';
-import CommunityVouches from './pages/CommunityVouches';
 import SkillArchive     from './pages/SkillArchive';
 
 // Protected pages (login required)
 import Payments from './pages/Payments';
 import Messages from './pages/Messages';
-import Settings from './pages/Settings';
+import Profile  from './pages/Profile';
 
 // Professional pages
 import ProDashboard from './pages/professional/Dashboard';
@@ -96,8 +95,8 @@ function AppRoutes() {
         <Route path="/"         element={<Home />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/voice"    element={<VoiceOnboarding />} />
-        <Route path="/vouches"  element={<CommunityVouches />} />
         <Route path="/archive"  element={<SkillArchive />} />
+        <Route path="/profile"  element={<Profile />} />
       </Route>
 
       {/* ── PROTECTED routes — login required ─────────────────── */}
@@ -105,7 +104,6 @@ function AppRoutes() {
         {/* Shared */}
         <Route path="/messages" element={<Messages />} />
         <Route path="/payments" element={<Payments />} />
-        <Route path="/settings" element={<Settings />} />
 
         {/* Professional */}
         <Route path="/pro"          element={<ProDashboard />} />

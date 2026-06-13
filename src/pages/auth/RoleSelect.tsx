@@ -83,10 +83,6 @@ export default function RoleSelect() {
       >
         {/* Header */}
         <div className="text-center mb-10">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 uppercase tracking-widest mb-4 px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            Step 1 of 2
-          </span>
           <h1 className="text-4xl font-black text-gray-900 mb-3" style={{ fontFamily: 'Outfit, sans-serif' }}>
             How will you use{' '}
             <span className="gradient-text">SkillSeekho?</span>

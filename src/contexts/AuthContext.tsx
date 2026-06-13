@@ -28,6 +28,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refreshProfile = useCallback(async () => {
+    const isMockMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+    if (isMockMode) {
+      const savedProfile = localStorage.getItem('mock_profile');
+      if (savedProfile) setProfile(JSON.parse(savedProfile));
+      return;
+    }
     const currentUser = (await supabase.auth.getUser()).data.user;
     if (!currentUser) return;
     const p = await getProfile(currentUser.id);
@@ -35,6 +41,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const isMockMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+
+    if (isMockMode) {
+      const isSignedOut = localStorage.getItem('mock_signed_out') === 'true';
+      const savedSession = localStorage.getItem('mock_session');
+      const savedProfile = localStorage.getItem('mock_profile');
+
+      if (isSignedOut) {
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+      } else if (savedSession && savedProfile) {
+        setSession(JSON.parse(savedSession));
+        setUser(JSON.parse(savedSession).user);
+        setProfile(JSON.parse(savedProfile));
+      } else {
+        const defaultUser = {
+          id: 'mock-user-id',
+          email: 'aarav@skillseekho.com',
+        } as User;
+
+        const defaultProfile = {
+          id: 'mock-user-id',
+          name: 'Aarav Mehta',
+          phone: '+91 98765 43210',
+          avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          role: 'customer',
+          bio: 'Aspiring coder and designer from Bangalore.',
+          languages: ['English', 'Hindi'],
+          location_lat: 12.9352,
+          location_lng: 77.6245,
+          location_name: 'Koramangala, Bangalore',
+          verified: true,
+          onboarding_complete: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const defaultSession = {
+          access_token: 'mock-token',
+          user: defaultUser,
+        } as unknown as Session;
+
+        setSession(defaultSession);
+        setUser(defaultUser);
+        setProfile(defaultProfile as any);
+
+        localStorage.setItem('mock_session', JSON.stringify(defaultSession));
+        localStorage.setItem('mock_profile', JSON.stringify(defaultProfile));
+      }
+      setLoading(false);
+      return;
+    }
+
     // Safety timeout — if Supabase isn't configured (.env missing), resolve after 1s
     const timeout = setTimeout(() => setLoading(false), 1000);
 

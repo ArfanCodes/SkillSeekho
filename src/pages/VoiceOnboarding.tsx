@@ -12,10 +12,6 @@ export default function VoiceOnboarding() {
     <div className="min-h-screen px-6 py-14">
       <div className="max-w-2xl mx-auto text-center mb-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 uppercase tracking-widest mb-4 px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            <Headphones size={13} /> Voice First
-          </span>
           <h1 className="text-4xl md:text-5xl font-black mb-5" style={{ fontFamily: 'Outfit, sans-serif' }}>
             Onboard with your <span className="gradient-text">voice</span>
           </h1>

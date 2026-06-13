@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home, Compass, Mic, Heart, Archive, CreditCard,
-  MessageSquare, Settings, Zap, ChevronRight, X,
+  MessageSquare, User, Zap, ChevronRight, X,
   LayoutDashboard, Star, CalendarCheck, Wallet,
   PlusSquare, Users, ListChecks, LogIn,
 } from 'lucide-react';
@@ -22,19 +22,18 @@ const guestNav: NavItem[] = [
   { path: '/',         label: 'Home',             icon: Home    },
   { path: '/discover', label: 'Discover Skills',  icon: Compass },
   { path: '/voice',    label: 'Voice Search',     icon: Mic     },
-  { path: '/vouches',  label: 'Community Vouches',icon: Heart   },
   { path: '/archive',  label: 'Skill Archive',    icon: Archive },
+  { path: '/profile',  label: 'Profile',          icon: User    },
 ];
 
 const customerNav: NavItem[] = [
   { path: '/',         label: 'Home',             icon: Home          },
   { path: '/discover', label: 'Discover Skills',  icon: Compass       },
   { path: '/voice',    label: 'Voice Search',     icon: Mic           },
-  { path: '/vouches',  label: 'Community Vouches',icon: Heart         },
   { path: '/archive',  label: 'Skill Archive',    icon: Archive       },
+  { path: '/profile',  label: 'Profile',          icon: User          },
   { path: '/payments', label: 'Payments',         icon: CreditCard    },
   { path: '/messages', label: 'Messages',         icon: MessageSquare },
-  { path: '/settings', label: 'Settings',         icon: Settings      },
 ];
 
 const professionalNav: NavItem[] = [
@@ -43,7 +42,7 @@ const professionalNav: NavItem[] = [
   { path: '/pro/bookings', label: 'Manage Bookings', icon: CalendarCheck   },
   { path: '/pro/earnings', label: 'Earnings',        icon: Wallet          },
   { path: '/messages',     label: 'Messages',        icon: MessageSquare   },
-  { path: '/settings',     label: 'Settings',        icon: Settings        },
+  { path: '/profile',      label: 'Profile',         icon: User            },
 ];
 
 const employerNav: NavItem[] = [
@@ -52,7 +51,7 @@ const employerNav: NavItem[] = [
   { path: '/employer/teachers', label: 'Browse Teachers',  icon: Users           },
   { path: '/employer/jobs',     label: 'My Jobs',          icon: ListChecks      },
   { path: '/messages',          label: 'Messages',         icon: MessageSquare   },
-  { path: '/settings',          label: 'Settings',         icon: Settings        },
+  { path: '/profile',          label: 'Profile',          icon: User            },
 ];
 
 const roleNavMap: Record<UserRole, NavItem[]> = {

@@ -77,10 +77,6 @@ export default function ProfileSetup() {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 uppercase tracking-widest mb-4 px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            Step 2 of 2
-          </span>
           <h1 className="text-3xl font-black text-gray-900 mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
             Set up your{' '}
             <span className="gradient-text">{roleLabel}</span> profile

@@ -16,10 +16,6 @@ export default function ProDashboard() {
     <div className="min-h-screen px-6 py-14">
       <div className="max-w-3xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 uppercase tracking-widest mb-4 px-3 py-1.5 rounded-full"
-            style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            <LayoutDashboard size={13} /> Professional
-          </span>
           <h1 className="text-4xl font-black mb-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
             Welcome, {profile?.name?.split(' ')[0] ?? 'Teacher'} 👋
           </h1>

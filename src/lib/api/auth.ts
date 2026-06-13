@@ -9,6 +9,42 @@ export async function signUpWithEmail(params: {
   role: UserRole;
   name: string;
 }) {
+  const isMockMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+  if (isMockMode) {
+    const { email, role, name } = params;
+    const defaultUser = {
+      id: 'mock-user-id',
+      email: email,
+    } as any;
+
+    const defaultProfile: Profile = {
+      id: 'mock-user-id',
+      name: name,
+      phone: '+91 98765 43210',
+      avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      role: role,
+      bio: 'New user profile.',
+      languages: ['English'],
+      location_lat: 12.9352,
+      location_lng: 77.6245,
+      location_name: 'Koramangala, Bangalore',
+      verified: true,
+      onboarding_complete: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const defaultSession = {
+      access_token: 'mock-token',
+      user: defaultUser,
+    } as any;
+
+    localStorage.removeItem('mock_signed_out');
+    localStorage.setItem('mock_session', JSON.stringify(defaultSession));
+    localStorage.setItem('mock_profile', JSON.stringify(defaultProfile));
+    return { user: defaultUser, session: defaultSession };
+  }
+
   const { email, password, role, name } = params;
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -34,6 +70,41 @@ export async function signUpWithEmail(params: {
 }
 
 export async function signInWithEmail(email: string, password: string) {
+  const isMockMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+  if (isMockMode) {
+    const defaultUser = {
+      id: 'mock-user-id',
+      email: email,
+    } as any;
+
+    const defaultProfile: Profile = {
+      id: 'mock-user-id',
+      name: email.split('@')[0],
+      phone: '+91 98765 43210',
+      avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      role: 'customer',
+      bio: 'Aspiring coder.',
+      languages: ['English'],
+      location_lat: 12.9352,
+      location_lng: 77.6245,
+      location_name: 'Koramangala, Bangalore',
+      verified: true,
+      onboarding_complete: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const defaultSession = {
+      access_token: 'mock-token',
+      user: defaultUser,
+    } as any;
+
+    localStorage.removeItem('mock_signed_out');
+    localStorage.setItem('mock_session', JSON.stringify(defaultSession));
+    localStorage.setItem('mock_profile', JSON.stringify(defaultProfile));
+    return { user: defaultUser, session: defaultSession };
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error(error.message);
   return data;
@@ -56,6 +127,15 @@ export async function signInWithGoogle(role?: UserRole) {
 // ── Sign Out ──────────────────────────────────
 
 export async function signOut() {
+  const isMockMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+  if (isMockMode) {
+    localStorage.setItem('mock_signed_out', 'true');
+    localStorage.removeItem('mock_session');
+    localStorage.removeItem('mock_profile');
+    // Force a hard reload so the AuthContext state updates and redirects correctly
+    window.location.href = '/';
+    return;
+  }
   const { error } = await supabase.auth.signOut();
   if (error) throw new Error(error.message);
 }
@@ -80,6 +160,15 @@ export async function updateProfile(
   userId: string,
   updates: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>
 ): Promise<Profile> {
+  const isMockMode = !import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder');
+  if (isMockMode) {
+    const savedProfile = localStorage.getItem('mock_profile');
+    const currentProfile = savedProfile ? JSON.parse(savedProfile) : {};
+    const updated = { ...currentProfile, ...updates, updated_at: new Date().toISOString() };
+    localStorage.setItem('mock_profile', JSON.stringify(updated));
+    return updated as Profile;
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .update(updates)

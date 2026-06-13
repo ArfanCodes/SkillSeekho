@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import TeacherCarousel from './TeacherCarousel';
-import { mentors } from '../utils/mockData';
+import { mentors } from '../utils/mockData.ts';
 
 export default function NearbyTeachers() {
   return (
