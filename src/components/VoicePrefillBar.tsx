@@ -21,6 +21,7 @@ const LANGS = [
   { label: 'తెలుగు', hint: 'te' },
 ];
 
+
 function fmt(ms: number) {
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -32,6 +33,9 @@ export default function VoicePrefillBar({ mode, onFilled }: Props) {
   const [barStatus, setBarStatus] = useState<BarStatus>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(false);
+  // Ref stays current every render — effect reads latest value without being a dep
+  const selectedLangRef = useRef('');
+  selectedLangRef.current = selectedLang;
 
   // Run pipeline when recording stops
   useEffect(() => {
@@ -42,10 +46,11 @@ export default function VoicePrefillBar({ mode, onFilled }: Props) {
 
     (async () => {
       try {
-        const tx = await transcribeAudio(rec.audioBlob!, selectedLang);
+        const tx = await transcribeAudio(rec.audioBlob!, selectedLangRef.current);
         if (abortRef.current) return;
         const intent = await extractIntent(tx.transcript, tx.language, mode);
         if (abortRef.current) return;
+
         onFilled(intent as ProfileIntent | ListingIntent);
         setBarStatus('done');
       } catch (err) {
@@ -54,7 +59,6 @@ export default function VoicePrefillBar({ mode, onFilled }: Props) {
         setBarStatus('error');
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rec.audioBlob, rec.status]);
 
   function handleReset() {

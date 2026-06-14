@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { useCategories, useCreateSkill, useUpdateSkill } from '../hooks/queries/useCatalogue';
-import { uploadSkillCover, type SkillInput } from '../lib/api/catalogue';
-import LocationPicker from './LocationPicker';
+import { type SkillInput } from '../lib/api/catalogue';
 import VoicePrefillBar from './VoicePrefillBar';
 import type { Skill, ProfileIntent, ListingIntent } from '../types';
 
@@ -28,15 +27,13 @@ export default function SkillFormModal({ teacherId, existing, onClose }: Props) 
   const [tags,         setTags]         = useState((existing?.tags ?? []).join(', '));
   const [langs,        setLangs]        = useState<string[]>(existing?.languages ?? []);
   const [availability, setAvailability] = useState(existing?.availability ?? '');
-  const [lat,          setLat]          = useState<number | null>(existing?.location_lat ?? null);
-  const [lng,          setLng]          = useState<number | null>(existing?.location_lng ?? null);
-  const [locationName, setLocationName] = useState(existing?.location_name ?? '');
-  const [coverUrl,     setCoverUrl]     = useState<string | null>(existing?.cover_image_url ?? null);
-  const [uploading,    setUploading]    = useState(false);
   const [error,        setError]        = useState('');
 
   const toggleLang = (l: string) => setLangs((p) => p.includes(l) ? p.filter((x) => x !== l) : [...p, l]);
   const saving = create.isPending || update.isPending;
+
+  // Clear stale validation errors when user corrects the field
+  useEffect(() => { if (error) setError(''); }, [title, price]);
 
   function handleVoiceFilled(data: ProfileIntent | ListingIntent) {
     if (data.mode !== 'listing') return;
@@ -45,20 +42,13 @@ export default function SkillFormModal({ teacherId, existing, onClose }: Props) 
     if (data.description)       setDescription(data.description ?? '');
     if (data.tags?.length)      setTags(data.tags.join(', '));
     if (data.availability)      setAvailability(data.availability ?? '');
+    // Always default to Hindi + Malayalam; user can deselect if not needed
+    setLangs(['Hindi', 'Malayalam']);
     if (data.category_slug) {
       const cat = categories.find((c) => c.slug === data.category_slug);
       if (cat) setCategoryId(cat.id);
     }
   }
-
-  const handleCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true); setError('');
-    try { setCoverUrl(await uploadSkillCover(teacherId, file)); }
-    catch (err) { setError(err instanceof Error ? err.message : 'Upload failed'); }
-    finally { setUploading(false); }
-  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,10 +64,12 @@ export default function SkillFormModal({ teacherId, existing, onClose }: Props) 
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       languages: langs,
       availability: availability || null,
-      location_name: locationName.trim() || null,
-      location_lat: lat,
-      location_lng: lng,
-      cover_image_url: coverUrl,
+      // Location & cover were removed from the form; preserve any existing
+      // values on edit, leave null for new skills.
+      location_name: existing?.location_name ?? null,
+      location_lat: existing?.location_lat ?? null,
+      location_lng: existing?.location_lng ?? null,
+      cover_image_url: existing?.cover_image_url ?? null,
     };
 
     try {
@@ -160,31 +152,9 @@ export default function SkillFormModal({ teacherId, existing, onClose }: Props) 
             </div>
           </Field>
 
-          <Field label="Cover image">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-xl bg-gray-50 overflow-hidden flex items-center justify-center flex-shrink-0"
-                style={{ border: '1px solid #E5E7EB' }}>
-                {coverUrl
-                  ? <img src={coverUrl} alt="" className="w-full h-full object-cover" />
-                  : <Upload size={18} className="text-gray-300" />}
-              </div>
-              <label className="text-sm font-medium text-green-700 cursor-pointer flex items-center gap-1.5">
-                {uploading ? <><Loader2 size={14} className="animate-spin" /> Uploading…</> : 'Upload image'}
-                <input type="file" accept="image/*" onChange={handleCover} className="hidden" />
-              </label>
-            </div>
-          </Field>
-
-          <Field label="Teaching location">
-            <LocationPicker lat={lat} lng={lng}
-              onChange={(la, ln, name) => { setLat(la); setLng(ln); if (name) setLocationName(name); }} />
-            <input value={locationName} onChange={(e) => setLocationName(e.target.value)}
-              placeholder="Area / neighbourhood label" className="ss-input mt-2" />
-          </Field>
-
           {error && <p className="text-xs text-red-500">{error}</p>}
 
-          <button type="submit" disabled={saving || uploading}
+          <button type="submit" disabled={saving}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
             {saving ? <Loader2 size={16} className="animate-spin" /> : existing ? 'Save changes' : 'Publish skill'}
