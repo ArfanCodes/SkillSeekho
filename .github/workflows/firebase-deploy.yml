@@ -30,10 +30,6 @@ jobs:
           VITE_YOUTUBE_API_KEY: ${{ secrets.VITE_YOUTUBE_API_KEY }}
 
       - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ''
-          firebaseToken: ${{ secrets.FIREBASE_TOKEN }}
-          projectId: skillseekho-3bb63
-          channelId: live
+        run: npx --yes firebase-tools@latest deploy --only hosting --project skillseekho-3bb63 --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
