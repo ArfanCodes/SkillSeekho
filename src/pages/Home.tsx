@@ -17,7 +17,6 @@ export default function Home() {
       <NearbyTeachers />
       <PopularSkills />
       <CommunityTrust />
-      <div className="h-16" />
     </div>
   );
 }

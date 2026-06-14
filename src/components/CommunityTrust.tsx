@@ -21,7 +21,7 @@ export default function CommunityTrust() {
 
   return (
     <section className="px-6 py-12" style={{ backgroundColor: '#111827' }}>
-      <div className="max-w-5xl mx-auto">
+      <div>
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.5 }}
           className="text-center mb-12">
