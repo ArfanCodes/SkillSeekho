@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
 import { Mail } from 'lucide-react';
-import { signInWithEmail, signInWithGoogle } from '../../lib/api/auth';
-import { AUTH_THEMES, isValidRole } from './authConfig';
+import { signInWithEmail, signInWithGoogle, signOut, getProfile, upsertProfile } from '../../lib/api/auth';
+import { AUTH_THEMES, isValidRole, ADMIN_EMAIL, ROLE_HOME } from './authConfig';
+import { useAuth } from '../../hooks/useAuth';
 import AuthShell from './AuthShell';
 import { TextField, PasswordField, GoogleButton, Divider, SubmitButton } from './fields';
+import type { UserRole } from '../../types';
 
 export default function SignIn() {
   const { role } = useParams();
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,9 +30,37 @@ export default function SignIn() {
     }
     setLoading(true);
     try {
-      await signInWithEmail(email.trim(), password);
-      // AuthContext picks up the session; guards route to onboarding or home.
-      navigate('/', { replace: true });
+      const data = await signInWithEmail(email.trim(), password);
+      const isAdmin = email.trim().toLowerCase() === ADMIN_EMAIL;
+
+      if (!isAdmin) {
+        // Fetch the profile and enforce role match
+        const profile = await getProfile(data.user.id);
+        if (!profile) throw new Error('Account not found. Please sign up first.');
+
+        if (profile.role !== role) {
+          // Wrong door — sign them back out immediately
+          await signOut();
+          const correctLabel = AUTH_THEMES[profile.role as UserRole]?.label ?? profile.role;
+          throw new Error(
+            `This account is registered as a ${correctLabel}. Please use the ${correctLabel} login instead.`
+          );
+        }
+
+        navigate(ROLE_HOME[profile.role as UserRole] ?? '/', { replace: true });
+      } else {
+        // Admin: log in through any interface → become that role and land on its dashboard.
+        // Stamp the profile so the route guards (which read role + onboarding_complete)
+        // let the admin straight through instead of bouncing to role-select/onboarding.
+        await upsertProfile(data.user.id, {
+          role,
+          name: 'Admin',
+          onboarding_complete: true,
+          verified: true,
+        });
+        await refreshProfile();
+        navigate(ROLE_HOME[role] ?? '/', { replace: true });
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Could not sign in. Try again.');
     } finally {

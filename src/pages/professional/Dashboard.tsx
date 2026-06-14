@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useTeacherSkills, useDeleteSkill } from '../../hooks/queries/useCatalogue';
+import { useTeacherBookings } from '../../hooks/queries/useBookings';
+import { useWallet } from '../../hooks/queries/useWallet';
+import BookingCard from '../../components/BookingCard';
 import SkillFormModal from '../../components/SkillFormModal';
 import type { Skill } from '../../types';
 
@@ -24,7 +27,13 @@ export default function ProDashboard() {
   const { user, profile } = useAuth();
   const teacherId = user?.id ?? '';
   const { data: skills = [], isLoading: skillsLoading } = useTeacherSkills(teacherId);
+  const { data: bookings = [] } = useTeacherBookings(teacherId);
+  const { data: wallet } = useWallet(profile?.id);
   const del = useDeleteSkill(teacherId);
+
+  const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
+  const totalBookings = bookings.filter((b) => b.status === 'confirmed' || b.status === 'completed').length;
+  const earnedRupees = wallet ? Math.floor(wallet.balance / 100) : 0;
 
   const [editing, setEditing] = useState<Skill | null>(null);
   const [adding,  setAdding]  = useState(false);
@@ -53,10 +62,10 @@ export default function ProDashboard() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="grid grid-cols-4 gap-3 mb-8">
         {[
-          { icon: CalendarCheck, label: 'Bookings', value: '0',  color: '#3B82F6', bg: '#EFF6FF' },
-          { icon: Wallet,        label: 'Earned',   value: '₹0', color: '#22C55E', bg: '#F0FDF4' },
-          { icon: Star,          label: 'Rating',   value: '—',  color: '#F59E0B', bg: '#FFFBEB' },
-          { icon: Users,         label: 'Vouches',  value: '0',  color: '#EC4899', bg: '#FDF2F8' },
+          { icon: CalendarCheck, label: 'Bookings', value: String(totalBookings),         color: '#3B82F6', bg: '#EFF6FF' },
+          { icon: Wallet,        label: 'Earned',   value: `₹${earnedRupees}`,            color: '#22C55E', bg: '#F0FDF4' },
+          { icon: Star,          label: 'Rating',   value: '—',                           color: '#F59E0B', bg: '#FFFBEB' },
+          { icon: Users,         label: 'Vouches',  value: String(profile?.verified ? '✓' : '0'), color: '#EC4899', bg: '#FDF2F8' },
         ].map(({ icon: Icon, label, value, color, bg }, i) => (
           <motion.div key={label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06 + i * 0.05 }}
@@ -84,13 +93,27 @@ export default function ProDashboard() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl p-8 text-center card-shadow" style={{ border: '1px solid #F3F4F6' }}>
-          <CalendarCheck size={32} className="text-gray-200 mx-auto mb-3" />
-          <p className="font-semibold text-gray-500 text-sm">No upcoming bookings</p>
-          <p className="text-xs text-gray-400 mt-1">
-            {hasSkills ? 'Share your profile link to get your first booking.' : 'Add a skill below to start receiving requests.'}
-          </p>
-        </div>
+        {confirmedBookings.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center card-shadow" style={{ border: '1px solid #F3F4F6' }}>
+            <CalendarCheck size={32} className="text-gray-200 mx-auto mb-3" />
+            <p className="font-semibold text-gray-500 text-sm">No upcoming bookings</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {hasSkills ? 'Share your profile link to get your first booking.' : 'Add a skill below to start receiving requests.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {confirmedBookings.slice(0, 3).map((b, i) => (
+              <BookingCard key={b.id} booking={b} teacherView index={i} />
+            ))}
+            {confirmedBookings.length > 3 && (
+              <Link to="/pro/bookings"
+                className="block text-center text-xs font-semibold text-green-600 py-2 hover:underline">
+                View all {confirmedBookings.length} upcoming →
+              </Link>
+            )}
+          </div>
+        )}
       </motion.section>
 
       {/* ── My Skills (combined with onboarding for new teachers) ── */}

@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Star, Heart, MapPin, ShieldCheck, Calendar, Globe, Clock } from 'lucide-react';
 import { useSkill, useSkillReviews } from '../hooks/queries/useCatalogue';
+import { useAuth } from '../hooks/useAuth';
 import TeacherMap from '../components/TeacherMap';
+import BookingModal from '../components/BookingModal';
 
 export default function SkillDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: skill, isLoading } = useSkill(id);
   const { data: reviews = [] } = useSkillReviews(id);
+  const { isAuthenticated, profile } = useAuth();
+  const [showBooking, setShowBooking] = useState(false);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-gray-400 text-sm">Loading…</div>;
@@ -78,10 +83,24 @@ export default function SkillDetail() {
             </div>
           )}
 
-          <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white mb-8"
-            style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
-            <Calendar size={16} /> Book a Session
-          </button>
+          {/* Don't show Book button to the teacher who owns this skill */}
+          {profile?.id !== skill.teacher_id && (
+            <button
+              onClick={() => isAuthenticated ? setShowBooking(true) : navigate('/auth')}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white mb-8"
+              style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
+            >
+              <Calendar size={16} /> Book a Session
+            </button>
+          )}
+
+          {showBooking && profile && (
+            <BookingModal
+              skill={skill}
+              learnerId={profile.id}
+              onClose={() => setShowBooking(false)}
+            />
+          )}
 
           {/* Reviews */}
           <h2 className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Outfit, sans-serif' }}>

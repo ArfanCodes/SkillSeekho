@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { GeolocationProvider } from './hooks/useGeolocation';
 import { useAuth } from './hooks/useAuth';
 import MainLayout from './layouts/MainLayout';
+import { isValidRole, ROLE_HOME } from './pages/auth/authConfig';
 
 // Auth pages
 import AuthLanding  from './pages/auth/AuthLanding';
@@ -22,6 +23,7 @@ import SkillArchive     from './pages/SkillArchive';
 import Payments from './pages/Payments';
 import Messages from './pages/Messages';
 import Profile  from './pages/Profile';
+import MessagesDeep from './pages/MessagesDeep';
 
 // Professional pages
 import ProDashboard from './pages/professional/Dashboard';
@@ -67,8 +69,26 @@ function FullScreenLoader() {
   );
 }
 
+// Only redirect away from the auth page when the logged-in profile's role
+// matches the URL role. If they don't match, keep rendering the child (SignIn/SignUp)
+// so it can detect the mismatch, sign the user back out, and show the error.
+function RoleMatchRedirect({ children }: { children: React.ReactNode }) {
+  const { role } = useParams<{ role: string }>();
+  const { isAuthenticated, needsRoleSelection, needsOnboarding, profile } = useAuth();
+  if (
+    isAuthenticated &&
+    !needsRoleSelection &&
+    !needsOnboarding &&
+    isValidRole(role) &&
+    profile?.role === role
+  ) {
+    return <Navigate to={ROLE_HOME[role]} replace />;
+  }
+  return <>{children}</>;
+}
+
 function AppRoutes() {
-  const { isAuthenticated, needsRoleSelection, needsOnboarding, loading } = useAuth();
+  const { isAuthenticated, needsRoleSelection, needsOnboarding, loading, profile } = useAuth();
   if (loading) return <FullScreenLoader />;
 
   return (
@@ -76,19 +96,16 @@ function AppRoutes() {
       {/* ── Auth flow ──────────────────────────────────────────── */}
       <Route path="/auth" element={
         isAuthenticated && !needsRoleSelection && !needsOnboarding
-          ? <Navigate to="/" replace />
+          ? <Navigate to={ROLE_HOME[profile?.role ?? 'customer']} replace />
           : <AuthLanding />
       } />
-      <Route path="/auth/:role/login"  element={
-        isAuthenticated && !needsRoleSelection && !needsOnboarding
-          ? <Navigate to="/" replace />
-          : <SignIn />
-      } />
-      <Route path="/auth/:role/signup" element={
-        isAuthenticated && !needsRoleSelection && !needsOnboarding
-          ? <Navigate to="/" replace />
-          : <SignUp />
-      } />
+      {/*
+        Login/signup: only auto-redirect when the profile role MATCHES the URL role.
+        If a customer tries the teacher login, the route stays on SignIn so
+        handleSubmit can detect the mismatch, sign them out, and show the error.
+      */}
+      <Route path="/auth/:role/login"  element={<RoleMatchRedirect><SignIn /></RoleMatchRedirect>} />
+      <Route path="/auth/:role/signup" element={<RoleMatchRedirect><SignUp /></RoleMatchRedirect>} />
       <Route path="/auth/role"  element={<RequireAuth><RoleSelect /></RequireAuth>} />
       <Route path="/auth/setup" element={<RequireAuth><ProfileSetup /></RequireAuth>} />
 
@@ -106,6 +123,7 @@ function AppRoutes() {
       <Route element={<RequireOnboarding><MainLayout /></RequireOnboarding>}>
         {/* Shared */}
         <Route path="/messages" element={<Messages />} />
+        <Route path="/messages/:conversationId" element={<MessagesDeep />} />
         <Route path="/payments" element={<Payments />} />
 
         {/* Professional */}

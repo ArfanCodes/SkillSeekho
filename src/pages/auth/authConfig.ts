@@ -87,3 +87,11 @@ export const AUTH_THEMES: Record<UserRole, AuthTheme> = {
 
 export const isValidRole = (r: string | undefined): r is UserRole =>
   r === 'customer' || r === 'professional' || r === 'employer';
+
+export const ADMIN_EMAIL = 'admin@skillseekho.app';
+
+export const ROLE_HOME: Record<UserRole, string> = {
+  customer:     '/',
+  professional: '/pro',
+  employer:     '/employer',
+};

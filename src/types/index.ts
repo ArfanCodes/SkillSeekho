@@ -192,6 +192,14 @@ export interface Booking {
   created_at: string;
 }
 
+export interface BookingWithDetails extends Booking {
+  skill_title: string;
+  learner_name: string | null;
+  learner_avatar_url: string | null;
+  teacher_name: string | null;
+  teacher_avatar_url: string | null;
+}
+
 // ── Messages ──────────────────────────────────
 
 export interface Conversation {
@@ -200,6 +208,12 @@ export interface Conversation {
   participant_2: string;
   last_message_at: string;
   created_at: string;
+}
+
+export interface ConversationWithParticipant extends Conversation {
+  other_participant: Pick<Profile, 'id' | 'name' | 'avatar_url'>;
+  last_message: string | null;
+  unread_count: number;
 }
 
 export interface Message {

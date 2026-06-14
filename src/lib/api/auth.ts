@@ -188,6 +188,22 @@ export async function updateProfile(
   return data as Profile;
 }
 
+// Upsert: update if a profile row exists, otherwise create it. Used for the
+// admin account, whose auth user may exist without a profiles row.
+export async function upsertProfile(
+  userId: string,
+  fields: Partial<Omit<Profile, 'created_at' | 'updated_at'>>
+): Promise<Profile> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert({ id: userId, ...fields }, { onConflict: 'id' })
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Profile;
+}
+
 export async function setRole(userId: string, role: UserRole): Promise<void> {
   const { error } = await supabase
     .from('profiles')
