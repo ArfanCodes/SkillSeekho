@@ -1,21 +1,44 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Menu, Zap } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import LocationPrompt from '../components/LocationPrompt';
 import { useAuth } from '../hooks/useAuth';
+import { motion } from 'framer-motion';
+import favicon from '../assets/favicon.png';
+
+const EXPANDED_W = 260;
+const COLLAPSED_W = 72;
 
 export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isAuthenticated, role, profile } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('sidebar-collapsed') === 'true'; } catch { return false; }
+  });
+
+  const { isAuthenticated, profile } = useAuth();
   const navigate = useNavigate();
+
+  const handleCollapsedChange = useCallback((collapsed: boolean) => {
+    setSidebarCollapsed(collapsed);
+  }, []);
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: '#F9FAFB' }}>
       <LocationPrompt />
-      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        onCollapsedChange={handleCollapsedChange}
+      />
 
-      <div className="flex-1 flex flex-col md:ml-[260px] min-w-0">
+      {/* Main content — margin tracks the animated sidebar width */}
+      <motion.div
+        animate={{ marginLeft: sidebarCollapsed ? COLLAPSED_W : EXPANDED_W }}
+        transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+        className="flex-1 flex flex-col min-w-0 md:ml-0"
+        style={{ marginLeft: 0 }} // mobile: no margin (sidebar is a drawer)
+      >
         {/* Global top bar */}
         <header className="sticky top-0 z-20 flex items-center justify-between px-4 md:px-8 py-3 bg-white border-b border-gray-100">
           {/* Mobile menu trigger + Logo */}
@@ -28,17 +51,18 @@ export default function MainLayout() {
               <Menu size={22} />
             </button>
             <div className="flex items-center gap-2 md:hidden">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
-                <Zap size={13} color="white" strokeWidth={2.5} />
-              </div>
+              <img
+                src={favicon}
+                alt="SkillSeekho Logo"
+                className="w-7 h-7 rounded-lg object-contain"
+              />
               <span className="font-bold text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
                 SkillSeekho
               </span>
             </div>
           </div>
 
-          {/* Right actions (Auth buttons or Profile chip) */}
+          {/* Right actions */}
           <div className="flex items-center gap-3">
             {!isAuthenticated ? (
               <>
@@ -57,14 +81,14 @@ export default function MainLayout() {
                 </button>
               </>
             ) : (
-              <div 
+              <div
                 onClick={() => navigate('/profile')}
-                className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 animate-fade-in"
+                className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100"
               >
                 {profile?.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt={profile.name ?? 'User'} 
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.name ?? 'User'}
                     className="w-6 h-6 rounded-full object-cover border border-green-500"
                   />
                 ) : (
@@ -82,7 +106,7 @@ export default function MainLayout() {
         <main className="flex-1">
           <Outlet />
         </main>
-      </div>
+      </motion.div>
     </div>
   );
 }

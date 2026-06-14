@@ -172,6 +172,234 @@ export async function listSkillReviews(skillId: string): Promise<(Review & { lea
   }));
 }
 
+export interface TeacherReview {
+  id: string;
+  skill_id: string;
+  teacher_id: string;
+  learner_id: string;
+  learner_name: string | null;
+  learner_avatar_url: string | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  had_session: boolean; // true = reviewer completed a session with the tutor
+}
+
+const MOCK_TEACHER_REVIEWS: Record<string, TeacherReview[]> = {
+  'teacher-1': [
+    {
+      id: 'tr-1-1', skill_id: '1', teacher_id: 'teacher-1', learner_id: 'l-1',
+      learner_name: 'Ananya Roy',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      rating: 5,
+      comment: 'Priya taught me more in 3 sessions than months of YouTube tutorials. She is patient and incredibly skilled. I already shot my first paid gig!',
+      created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-1-2', skill_id: '1', teacher_id: 'teacher-1', learner_id: 'l-2',
+      learner_name: 'Rohit Sharma',
+      learner_avatar_url: null,
+      rating: 5,
+      comment: 'Incredible eye for composition. She helped me move from auto-mode to full manual in just 2 weeks. Highly recommend!',
+      created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-1-3', skill_id: '1', teacher_id: 'teacher-1', learner_id: 'l-3',
+      learner_name: 'Nidhi Patel',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      rating: 4,
+      comment: 'Very knowledgeable and professional. The post-processing tips she shared were gold. Would have liked more sessions on lighting.',
+      created_at: new Date(Date.now() - 86400000 * 21).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-1-4', skill_id: '1', teacher_id: 'teacher-1', learner_id: 'l-4',
+      learner_name: 'Suresh Babu',
+      learner_avatar_url: null,
+      rating: 5,
+      comment: 'I asked friends in the community about Priya and everyone vouched for her. Took a session and they were right — absolutely world-class!',
+      created_at: new Date(Date.now() - 86400000 * 35).toISOString(),
+      had_session: false,
+    },
+  ],
+  'teacher-2': [
+    {
+      id: 'tr-2-1', skill_id: '2', teacher_id: 'teacher-2', learner_id: 'l-5',
+      learner_name: 'Deepak Iyer',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      rating: 5,
+      comment: "The dum biryani recipe was a family secret he graciously shared. My family couldn't believe I cooked it. Arjun is a master teacher.",
+      created_at: new Date(Date.now() - 86400000 * 7).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-2-2', skill_id: '2', teacher_id: 'teacher-2', learner_id: 'l-6',
+      learner_name: 'Pooja Rao',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=150',
+      rating: 5,
+      comment: 'His passion for cooking is infectious. I came in knowing nothing about biryani and left with a skill I can use for life. The spice blending session was 10/10.',
+      created_at: new Date(Date.now() - 86400000 * 14).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-2-3', skill_id: '2', teacher_id: 'teacher-2', learner_id: 'l-7',
+      learner_name: 'Vikram Singh',
+      learner_avatar_url: null,
+      rating: 5,
+      comment: 'Arjun has deep culinary roots. He goes beyond recipes and teaches you the "why" behind every step. Exceptional experience!',
+      created_at: new Date(Date.now() - 86400000 * 28).toISOString(),
+      had_session: true,
+    },
+  ],
+  'teacher-3': [
+    {
+      id: 'tr-3-1', skill_id: '3', teacher_id: 'teacher-3', learner_id: 'l-8',
+      learner_name: 'Lakshmi Narayanan',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150',
+      rating: 5,
+      comment: 'Meena aunty is a gem. She fixed my blouse pattern in 20 minutes and then spent an hour teaching me how to do it myself. Truly neighbourhood gold!',
+      created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-3-2', skill_id: '3', teacher_id: 'teacher-3', learner_id: 'l-9',
+      learner_name: 'Kavya Reddy',
+      learner_avatar_url: null,
+      rating: 5,
+      comment: 'I wanted to learn to stitch my own kurtas. After 4 sessions with Meena, I completed my first one. The fit was perfect. She is incredibly patient and thorough.',
+      created_at: new Date(Date.now() - 86400000 * 18).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-3-3', skill_id: '3', teacher_id: 'teacher-3', learner_id: 'l-10',
+      learner_name: 'Preethi Suresh',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
+      rating: 4,
+      comment: 'Very skilled in traditional techniques. I especially loved the saree draping session. Would love if she added more western fashion content.',
+      created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+      had_session: true,
+    },
+  ],
+  'teacher-4': [
+    {
+      id: 'tr-4-1', skill_id: '4', teacher_id: 'teacher-4', learner_id: 'l-11',
+      learner_name: 'Fatima Khan',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+      rating: 5,
+      comment: 'I was terrified of speaking in meetings. After 2 months with Ravi, I presented to 50 people and got a promotion. Life-changing!',
+      created_at: new Date(Date.now() - 86400000 * 12).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-4-2', skill_id: '4', teacher_id: 'teacher-4', learner_id: 'l-12',
+      learner_name: 'Mohammed Ashfaq',
+      learner_avatar_url: null,
+      rating: 5,
+      comment: 'Ravi has a unique method — he records your speech and plays it back for improvement. That technique alone transformed my accent and confidence.',
+      created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-4-3', skill_id: '4', teacher_id: 'teacher-4', learner_id: 'l-13',
+      learner_name: 'Shivani Agarwal',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+      rating: 4,
+      comment: 'Great teacher, very structured curriculum. My interview English improved dramatically. I wish he had weekend slots too.',
+      created_at: new Date(Date.now() - 86400000 * 45).toISOString(),
+      had_session: true,
+    },
+  ],
+  'teacher-5': [
+    {
+      id: 'tr-5-1', skill_id: '5', teacher_id: 'teacher-5', learner_id: 'l-14',
+      learner_name: 'Aishwarya Menon',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150',
+      rating: 5,
+      comment: 'Sunita transformed my mornings. I used to wake up dreading the day — now I start with 30 minutes of Hatha and feel unstoppable. She is genuinely gifted.',
+      created_at: new Date(Date.now() - 86400000 * 6).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-5-2', skill_id: '5', teacher_id: 'teacher-5', learner_id: 'l-15',
+      learner_name: 'Gautam Nair',
+      learner_avatar_url: null,
+      rating: 5,
+      comment: 'I have tried yoga apps, online videos, gym classes — nothing clicked until Sunita. Her in-person guidance for posture is irreplaceable. 5 stars every time.',
+      created_at: new Date(Date.now() - 86400000 * 22).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-5-3', skill_id: '5', teacher_id: 'teacher-5', learner_id: 'l-16',
+      learner_name: 'Tejaswi Rao',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150',
+      rating: 5,
+      comment: 'The pranayama breathing techniques she taught me help me manage anxiety daily. I cannot put a price on this skill.',
+      created_at: new Date(Date.now() - 86400000 * 40).toISOString(),
+      had_session: false,
+    },
+  ],
+  'teacher-6': [
+    {
+      id: 'tr-6-1', skill_id: '6', teacher_id: 'teacher-6', learner_id: 'l-17',
+      learner_name: 'Aryan Kapoor',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      rating: 5,
+      comment: 'Kabir is the kind of teacher who makes you fall in love with music all over again. I learnt fingerpicking in the very first session. Truly inspiring!',
+      created_at: new Date(Date.now() - 86400000 * 9).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-6-2', skill_id: '6', teacher_id: 'teacher-6', learner_id: 'l-18',
+      learner_name: 'Siddharth Joshi',
+      learner_avatar_url: null,
+      rating: 4,
+      comment: 'Excellent classical foundation. He taught me the basics of music theory which I never learnt before, and now it all makes sense. Scheduling could be more flexible.',
+      created_at: new Date(Date.now() - 86400000 * 25).toISOString(),
+      had_session: true,
+    },
+    {
+      id: 'tr-6-3', skill_id: '6', teacher_id: 'teacher-6', learner_id: 'l-19',
+      learner_name: 'Riya Malhotra',
+      learner_avatar_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150',
+      rating: 5,
+      comment: 'I wanted to learn Bollywood songs for a wedding performance. Kabir prepared a full set list and we nailed it! The crowd loved the performance!',
+      created_at: new Date(Date.now() - 86400000 * 50).toISOString(),
+      had_session: true,
+    },
+  ],
+};
+
+export async function listTeacherReviews(teacherId: string): Promise<TeacherReview[]> {
+  if (checkMockMode()) {
+    return MOCK_TEACHER_REVIEWS[teacherId] ?? [];
+  }
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .select(`
+      id, skill_id, teacher_id, learner_id, rating, comment, created_at,
+      learner:profiles!reviews_learner_id_fkey(name, avatar_url)
+    `)
+    .eq('teacher_id', teacherId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  type Row = {
+    id: string; skill_id: string; teacher_id: string; learner_id: string;
+    rating: number; comment: string | null; created_at: string;
+    learner: { name: string | null; avatar_url: string | null } | null;
+  };
+  return (data as unknown as Row[] ?? []).map((r) => ({
+    id: r.id, skill_id: r.skill_id, teacher_id: r.teacher_id, learner_id: r.learner_id,
+    rating: r.rating, comment: r.comment, created_at: r.created_at,
+    learner_name: r.learner?.name ?? null,
+    learner_avatar_url: r.learner?.avatar_url ?? null,
+    had_session: true,
+  }));
+}
+
 export async function createReview(input: {
   skill_id: string; teacher_id: string; learner_id: string; rating: number; comment?: string;
 }): Promise<Review> {

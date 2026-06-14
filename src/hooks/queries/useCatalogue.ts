@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listCategories, nearbySkills, getSkill, getTeacherSkills,
   createSkill, updateSkill, deleteSkill,
-  listSkillReviews, createReview, vouchForTeacher, unvouchTeacher,
+  listSkillReviews, listTeacherReviews, createReview, vouchForTeacher, unvouchTeacher,
   getCatalogueStats, listRecentReviews,
   type SkillInput,
 } from '../../lib/api/catalogue';
@@ -49,6 +49,14 @@ export function useSkillReviews(skillId: string | undefined) {
     queryKey: ['skill-reviews', skillId],
     queryFn: () => listSkillReviews(skillId as string),
     enabled: !!skillId,
+  });
+}
+
+export function useTeacherReviews(teacherId: string | undefined) {
+  return useQuery({
+    queryKey: ['teacher-reviews', teacherId],
+    queryFn: () => listTeacherReviews(teacherId as string),
+    enabled: !!teacherId,
   });
 }
 

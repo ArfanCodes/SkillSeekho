@@ -390,6 +390,655 @@ a { text-decoration: none; color: inherit; }
   background: #FEE2E2;
 }
 
+/* ── Reviews button ─────────────────────────────── */
+.teacher-card__btn-reviews {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4B5563;
+  background: #FFFFFF;
+  border: 1.5px solid #E5E7EB;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  white-space: nowrap;
+}
+
+.teacher-card__btn-reviews:hover {
+  border-color: #22C55E;
+  color: #16A34A;
+  background: #F0FDF4;
+  box-shadow: 0 2px 10px rgba(34, 197, 94, 0.12);
+}
+
+.teacher-card__btn-reviews-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+  color: white;
+  margin-left: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   ReviewsModal
+   ═══════════════════════════════════════════════════ */
+
+.reviews-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.reviews-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  max-height: 85vh;
+  background: #FFFFFF;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.reviews-modal__handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 99px;
+  background: #E5E7EB;
+  margin: 14px auto 0;
+  flex-shrink: 0;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.reviews-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 22px 14px;
+  border-bottom: 1px solid #F3F4F6;
+  flex-shrink: 0;
+}
+
+.reviews-modal__teacher-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reviews-modal__teacher-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.reviews-modal__teacher-avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+}
+
+.reviews-modal__teacher-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.01em;
+  margin: 0 0 2px;
+}
+
+.reviews-modal__teacher-skill {
+  font-size: 12px;
+  color: #9CA3AF;
+  font-weight: 500;
+  margin: 0 0 6px;
+}
+
+.reviews-modal__teacher-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reviews-modal__rating-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.reviews-modal__rating-count {
+  font-size: 12px;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.reviews-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  color: #6B7280;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.reviews-modal__close:hover {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.reviews-modal__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ── Body (scrollable) ───────────────────────────── */
+.reviews-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Rating breakdown ────────────────────────────── */
+.reviews-modal__breakdown {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 18px;
+  background: #F9FAFB;
+  border-radius: 18px;
+  border: 1px solid #F3F4F6;
+}
+
+.reviews-modal__breakdown-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 72px;
+}
+
+.reviews-modal__big-rating {
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: #111827;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.reviews-modal__breakdown-count {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.reviews-modal__breakdown-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reviews-modal__bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviews-modal__bar-label {
+  font-size: 11px;
+  color: #6B7280;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: right;
+}
+
+.reviews-modal__bar-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 99px;
+  background: #E5E7EB;
+  overflow: hidden;
+}
+
+.reviews-modal__bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #22C55E, #16A34A);
+}
+
+.reviews-modal__bar-count {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-weight: 600;
+  min-width: 16px;
+}
+
+/* ── Trust note ──────────────────────────────────── */
+.reviews-modal__trust-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #F0FDF4, #ECFDF5);
+  border: 1px solid #BBF7D0;
+  font-size: 12px;
+  color: #15803D;
+  line-height: 1.55;
+}
+
+.reviews-modal__trust-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #16A34A;
+}
+
+/* ── Loading ─────────────────────────────────────── */
+.reviews-modal__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+.reviews-modal__spinner {
+  animation: spin 1s linear infinite;
+  color: #22C55E;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Empty state ─────────────────────────────────── */
+.reviews-modal__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 10px;
+}
+
+.reviews-modal__empty-icon {
+  color: #D1D5DB;
+}
+
+.reviews-modal__empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  font-family: 'Outfit', sans-serif;
+  margin: 0;
+}
+
+.reviews-modal__empty-sub {
+  font-size: 13px;
+  color: #9CA3AF;
+  max-width: 260px;
+}
+
+/* ── Reviews list ────────────────────────────────── */
+.reviews-modal__reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Review card ─────────────────────────────────── */
+.reviews-modal__review-card {
+  background: #FFFFFF;
+  border: 1px solid #F3F4F6;
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.reviews-modal__review-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: #E5E7EB;
+}
+
+.reviews-modal__rc-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.reviews-modal__rc-avatar-wrap {
+  flex-shrink: 0;
+}
+
+.reviews-modal__rc-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.reviews-modal__rc-avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+}
+
+.reviews-modal__rc-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.reviews-modal__rc-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.reviews-modal__rc-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  font-family: 'Outfit', sans-serif;
+}
+
+.reviews-modal__rc-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+}
+
+.reviews-modal__rc-subrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviews-modal__rc-date {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.reviews-modal__rc-comment {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.65;
+  font-style: italic;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #FAFAFA;
+  border-left: 3px solid #BBF7D0;
+}
+
+.reviews-modal__rc-msg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.2s;
+}
+
+.reviews-modal__rc-msg-btn:hover {
+  background: #F0FDF4;
+  border-color: #22C55E;
+  color: #16A34A;
+}
+
+/* ── Message Reviewer sub-modal ──────────────────── */
+.reviews-modal__msg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.reviews-modal__msg-panel {
+  width: 100%;
+  max-width: 540px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.15);
+}
+
+.reviews-modal__msg-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reviews-modal__msg-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+  font-family: 'Outfit', sans-serif;
+  margin: 0 0 2px;
+}
+
+.reviews-modal__msg-subtitle {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+.reviews-modal__close-sm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  color: #6B7280;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.reviews-modal__close-sm:hover {
+  background: #F3F4F6;
+}
+
+.reviews-modal__msg-to {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  font-size: 13px;
+  color: #374151;
+}
+
+.reviews-modal__msg-to-icon {
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.reviews-modal__msg-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  color: #374151;
+  background: #FFFFFF;
+  border: 1.5px solid #E5E7EB;
+  resize: none;
+  outline: none;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  transition: border-color 0.2s;
+}
+
+.reviews-modal__msg-textarea:focus {
+  border-color: #22C55E;
+}
+
+.reviews-modal__msg-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 11px;
+  color: #9CA3AF;
+  line-height: 1.5;
+}
+
+.reviews-modal__msg-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.reviews-modal__btn-ghost {
+  padding: 9px 18px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reviews-modal__btn-ghost:hover {
+  background: #F3F4F6;
+}
+
+.reviews-modal__btn-send {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.reviews-modal__btn-send:hover {
+  opacity: 0.92;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+}
+
+.reviews-modal__btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 639px) {
+  .reviews-modal__sheet {
+    max-height: 96vh;
+  }
+
+  .reviews-modal__header {
+    padding: 14px 16px 12px;
+  }
+
+  .reviews-modal__body {
+    padding: 14px 16px 24px;
+  }
+
+  .reviews-modal__breakdown {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .reviews-modal__breakdown-left {
+    flex-direction: row;
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .reviews-modal__msg-panel {
+    padding: 16px 16px 28px;
+  }
+
+  .teacher-card__btn-reviews {
+    padding: 7px 11px;
+    font-size: 12px;
+  }
+}
+
+
 /* ═══════════════════════════════════════════════════
    TeacherCarousel
    ═══════════════════════════════════════════════════ */

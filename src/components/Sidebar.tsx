@@ -1,39 +1,41 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home, Compass, Mic, Heart, Archive, CreditCard,
-  MessageSquare, User, Zap, ChevronRight, X,
+  MessageSquare, User, Zap, X,
   LayoutDashboard, Star, CalendarCheck, Wallet,
-  PlusSquare, Users, ListChecks, LogIn,
+  PlusSquare, Users, ListChecks, LogIn, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { signOut } from '../lib/api/auth';
-import { useNavigate } from 'react-router-dom';
 import type { UserRole } from '../types';
+import favicon from '../assets/favicon.png';
 
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface NavItem {
   path: string;
   label: string;
   icon: React.ElementType;
 }
 
-// Guest sees only public routes
+// ── Nav definitions (unchanged) ───────────────────────────────────────────────
 const guestNav: NavItem[] = [
-  { path: '/',         label: 'Home',             icon: Home    },
-  { path: '/discover', label: 'Discover Skills',  icon: Compass },
-  { path: '/voice',    label: 'Voice Search',     icon: Mic     },
-  { path: '/archive',  label: 'Skill Archive',    icon: Archive },
-  { path: '/profile',  label: 'Profile',          icon: User    },
+  { path: '/',         label: 'Home',            icon: Home    },
+  { path: '/discover', label: 'Discover Skills', icon: Compass },
+  { path: '/voice',    label: 'Voice Search',    icon: Mic     },
+  { path: '/archive',  label: 'Skill Archive',   icon: Archive },
+  { path: '/profile',  label: 'Profile',         icon: User    },
 ];
 
 const customerNav: NavItem[] = [
-  { path: '/',         label: 'Home',             icon: Home          },
-  { path: '/discover', label: 'Discover Skills',  icon: Compass       },
-  { path: '/voice',    label: 'Voice Search',     icon: Mic           },
-  { path: '/archive',  label: 'Skill Archive',    icon: Archive       },
-  { path: '/profile',  label: 'Profile',          icon: User          },
-  { path: '/payments', label: 'Payments',         icon: CreditCard    },
-  { path: '/messages', label: 'Messages',         icon: MessageSquare },
+  { path: '/',         label: 'Home',            icon: Home          },
+  { path: '/discover', label: 'Discover Skills', icon: Compass       },
+  { path: '/voice',    label: 'Voice Search',    icon: Mic           },
+  { path: '/archive',  label: 'Skill Archive',   icon: Archive       },
+  { path: '/profile',  label: 'Profile',         icon: User          },
+  { path: '/payments', label: 'Payments',        icon: CreditCard    },
+  { path: '/messages', label: 'Messages',        icon: MessageSquare },
 ];
 
 const professionalNav: NavItem[] = [
@@ -46,12 +48,12 @@ const professionalNav: NavItem[] = [
 ];
 
 const employerNav: NavItem[] = [
-  { path: '/employer',          label: 'Dashboard',        icon: LayoutDashboard },
-  { path: '/employer/post',     label: 'Post a Job',       icon: PlusSquare      },
-  { path: '/employer/teachers', label: 'Browse Teachers',  icon: Users           },
-  { path: '/employer/jobs',     label: 'My Jobs',          icon: ListChecks      },
-  { path: '/messages',          label: 'Messages',         icon: MessageSquare   },
-  { path: '/profile',          label: 'Profile',          icon: User            },
+  { path: '/employer',          label: 'Dashboard',       icon: LayoutDashboard },
+  { path: '/employer/post',     label: 'Post a Job',      icon: PlusSquare      },
+  { path: '/employer/teachers', label: 'Browse Teachers', icon: Users           },
+  { path: '/employer/jobs',     label: 'My Jobs',         icon: ListChecks      },
+  { path: '/messages',          label: 'Messages',        icon: MessageSquare   },
+  { path: '/profile',           label: 'Profile',         icon: User            },
 ];
 
 const roleNavMap: Record<UserRole, NavItem[]> = {
@@ -61,32 +63,153 @@ const roleNavMap: Record<UserRole, NavItem[]> = {
 };
 
 const roleCTA: Record<UserRole, { title: string; desc: string; btnLabel: string }> = {
-  customer: {
-    title: 'Become a Teacher',
-    desc: 'Share your skill and earn in your neighbourhood.',
-    btnLabel: 'Start Teaching',
-  },
-  professional: {
-    title: 'Boost Your Profile',
-    desc: 'Get verified to unlock more learners.',
-    btnLabel: 'Get Verified',
-  },
-  employer: {
-    title: 'Post a Job',
-    desc: 'Find verified skill professionals fast.',
-    btnLabel: 'Post Now',
-  },
+  customer:     { title: 'Become a Teacher',   desc: 'Share your skill and earn in your neighbourhood.', btnLabel: 'Start Teaching' },
+  professional: { title: 'Boost Your Profile', desc: 'Get verified to unlock more learners.',            btnLabel: 'Get Verified'   },
+  employer:     { title: 'Post a Job',          desc: 'Find verified skill professionals fast.',          btnLabel: 'Post Now'       },
 };
 
+// ── Fixed-position tooltip (escapes overflow:hidden on sidebar) ───────────────
+function NavTooltip({ label, anchorRef, visible }: { label: string; anchorRef: React.RefObject<HTMLDivElement | null>; visible: boolean }) {
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (visible && anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.top + rect.height / 2,
+        left: rect.right + 12,
+      });
+    }
+  }, [visible, anchorRef]);
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, x: -6 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -6 }}
+          transition={{ duration: 0.15 }}
+          role="tooltip"
+          style={{
+            position: 'fixed',
+            top: pos.top,
+            left: pos.left,
+            transform: 'translateY(-50%)',
+            zIndex: 9999,
+            pointerEvents: 'none',
+          }}
+        >
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute',
+            left: -4,
+            top: '50%',
+            transform: 'translateY(-50%) rotate(45deg)',
+            width: 8,
+            height: 8,
+            background: '#111827',
+          }} />
+          <span style={{
+            display: 'block',
+            whiteSpace: 'nowrap',
+            background: '#111827',
+            color: '#ffffff',
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '6px 12px',
+            borderRadius: 8,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+            position: 'relative',
+          }}>
+            {label}
+          </span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ── Single nav item ───────────────────────────────────────────────────────────
+function NavItemRow({
+  path, label, icon: Icon, collapsed, onClick,
+}: NavItem & { collapsed: boolean; onClick?: () => void }) {
+  const location = useLocation();
+  const [hovered, setHovered] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  const isActive = path === '/'
+    ? location.pathname === '/'
+    : location.pathname.startsWith(path);
+
+  return (
+    <NavLink to={path} onClick={onClick} className="block" aria-label={label}>
+      <motion.div
+        ref={anchorRef}
+        onHoverStart={() => setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
+        whileTap={{ scale: 0.97 }}
+        className={`flex items-center rounded-xl transition-colors duration-150 cursor-pointer select-none
+          ${collapsed ? 'justify-center w-11 h-11 mx-auto' : 'gap-3 px-3.5 py-2.5'}
+          ${isActive
+            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-800'
+          }
+        `}
+      >
+        <Icon
+          size={collapsed ? 19 : 18}
+          strokeWidth={isActive ? 2.4 : 1.9}
+        />
+
+        {/* Label — only shown expanded */}
+        {!collapsed && (
+          <span className={`text-sm font-semibold tracking-tight ${isActive ? 'text-white' : ''}`}>
+            {label}
+          </span>
+        )}
+      </motion.div>
+
+      {/* Tooltip portal — only shown when collapsed */}
+      {collapsed && <NavTooltip label={label} anchorRef={anchorRef} visible={hovered} />}
+    </NavLink>
+  );
+}
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 interface SidebarProps {
   mobileOpen: boolean;
   onClose: () => void;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
-export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
-  const location = useLocation();
+// ── Main Sidebar ──────────────────────────────────────────────────────────────
+export default function Sidebar({ mobileOpen, onClose, onCollapsedChange }: SidebarProps) {
   const navigate = useNavigate();
   const { isAuthenticated, role, profile } = useAuth();
+
+  // Persist collapse state
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sidebar-collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Notify parent after mount (avoids "update during render" warning)
+  useEffect(() => { onCollapsedChange?.(collapsed); }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('sidebar-collapsed', String(next)); } catch {}
+      return next;
+    });
+  };
+
+  // Notify parent whenever collapsed changes
+  useEffect(() => { onCollapsedChange?.(collapsed); }, [collapsed]);
 
   const navItems = isAuthenticated && role ? roleNavMap[role] : guestNav;
   const cta = role ? roleCTA[role] : null;
@@ -96,150 +219,232 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
     navigate('/');
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
-          <Zap size={18} color="white" strokeWidth={2.5} />
+  // ── Desktop sidebar width
+  const EXPANDED_W = 260;
+  const COLLAPSED_W = 72;
+
+  // ── Shared inner content ──────────────────────────────────────────────────
+  function SidebarInner({ isDrawer = false }: { isDrawer?: boolean }) {
+    return (
+      <div className="flex flex-col h-full overflow-hidden">
+
+        {/* ── Logo row ─── */}
+        <div className={`flex items-center py-5 border-b border-gray-100 flex-shrink-0 transition-all duration-300
+          ${collapsed && !isDrawer ? 'justify-center px-0' : 'gap-3 px-5'}
+        `}>
+          <img
+            src={favicon}
+            alt="SkillSeekho Logo"
+            className="w-9 h-9 rounded-xl object-contain flex-shrink-0"
+          />
+
+          {(!collapsed || isDrawer) && (
+            <motion.div
+              initial={false}
+              animate={{ opacity: 1 }}
+              className="flex-1 min-w-0"
+            >
+              <span className="text-[17px] font-black tracking-tight text-gray-900 block leading-none"
+                style={{ fontFamily: 'Outfit, sans-serif' }}>
+                SkillSeekho
+              </span>
+              <span className="text-[11px] text-gray-400 font-medium capitalize">{role ?? 'Guest'}</span>
+            </motion.div>
+          )}
+
+          {/* Mobile close */}
+          {isDrawer && (
+            <button
+              onClick={onClose}
+              className="ml-auto text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-lg hover:bg-gray-100"
+              aria-label="Close sidebar"
+            >
+              <X size={18} />
+            </button>
+          )}
+
+          {/* Desktop collapse toggle */}
+          {!isDrawer && (
+            <button
+              onClick={toggleCollapsed}
+              className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all
+                text-gray-400 hover:text-gray-700 hover:bg-gray-100
+                ${collapsed ? 'mx-auto mt-0' : 'ml-auto'}
+              `}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+            </button>
+          )}
         </div>
-        <div>
-          <span className="text-lg font-bold" style={{ fontFamily: 'Outfit, sans-serif', color: '#111827' }}>
-            SkillSeekho
-          </span>
-          <p className="text-xs text-gray-400 leading-none mt-0.5 capitalize">
-            {role ?? 'Guest'}
-          </p>
-        </div>
-        <button
-          onClick={onClose}
-          className="ml-auto md:hidden text-gray-400 hover:text-gray-600 transition-colors"
-          aria-label="Close menu"
-        >
-          <X size={20} />
-        </button>
-      </div>
 
-      {/* Profile chip — only when logged in */}
-      {isAuthenticated && profile && (
-        <div className="mx-3 mt-3 px-3 py-2.5 rounded-xl bg-gray-50 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
-            {profile.name ? profile.name[0].toUpperCase() : '?'}
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-gray-800 truncate">{profile.name ?? 'Set up profile'}</p>
-            {profile.verified && (
-              <span className="text-[10px] text-green-600 font-medium">✓ Verified</span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-        {navItems.map(({ path, label, icon: Icon }) => {
-          const isActive = path === '/'
-            ? location.pathname === '/'
-            : location.pathname.startsWith(path);
-
-          return (
-            <NavLink key={path} to={path} onClick={onClose} className="block">
-              <motion.div
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  isActive
-                    ? 'bg-green-50 text-green-700'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
-                }`}
-              >
-                <Icon
-                  size={18}
-                  strokeWidth={isActive ? 2.2 : 1.8}
-                  color={isActive ? '#16A34A' : 'currentColor'}
-                />
-                <span className={isActive ? 'text-green-700' : ''}>{label}</span>
-                {isActive && <ChevronRight size={14} className="ml-auto text-green-500" />}
-              </motion.div>
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      {/* Bottom section */}
-      <div className="px-4 pb-3 pt-2 border-t border-gray-100">
-        {isAuthenticated && cta ? (
-          <>
-            {/* Role CTA card */}
-            <div className="rounded-2xl p-4 mb-3"
-              style={{ background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', border: '1px solid #BBF7D0' }}>
-              <p className="text-xs font-semibold text-green-800 mb-1">{cta.title}</p>
-              <p className="text-xs text-green-700 mb-3 leading-relaxed">{cta.desc}</p>
-              <button
-                className="w-full text-xs font-semibold text-white rounded-lg py-2 transition-opacity hover:opacity-90"
+        {/* ── Profile chip ─── */}
+        {isAuthenticated && profile && (!collapsed || isDrawer) && (
+          <div className="mx-3 mt-4 px-3.5 py-3 rounded-2xl bg-gray-50 border border-gray-100 flex items-center gap-3 flex-shrink-0">
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.name ?? 'User'}
+                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-200 flex-shrink-0"
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
                 style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
               >
-                {cta.btnLabel}
-              </button>
+                {profile.name ? profile.name[0].toUpperCase() : 'U'}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-gray-800 truncate leading-snug">{profile.name ?? 'Set up profile'}</p>
+              {profile.verified && (
+                <span className="text-[10px] text-emerald-600 font-semibold">✓ Verified</span>
+              )}
             </div>
-            {/* Sign out */}
-            <button
-              onClick={handleSignOut}
-              className="w-full text-xs font-medium text-gray-400 hover:text-red-500 transition-colors py-1"
-            >
-              Sign out
-            </button>
-          </>
-        ) : (
-          /* Guest — Login / Sign Up CTA */
-          <div className="rounded-2xl p-4"
-            style={{ background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', border: '1px solid #BBF7D0' }}>
-            <p className="text-xs font-semibold text-green-800 mb-1">Join SkillSeekho</p>
-            <p className="text-xs text-green-700 mb-3 leading-relaxed">
-              Find local teachers, share your skills, or hire professionals.
-            </p>
-            <button
-              onClick={() => { navigate('/auth'); onClose(); }}
-              className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-white rounded-lg py-2 transition-opacity hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
-            >
-              <LogIn size={13} />
-              Login / Sign Up
-            </button>
           </div>
         )}
-      </div>
-    </div>
-  );
 
+        {/* Collapsed avatar (icon-only) */}
+        {isAuthenticated && profile && collapsed && !isDrawer && (
+          <div className="flex justify-center mt-4 mb-1 flex-shrink-0">
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.name ?? 'User'}
+                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-300"
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
+              >
+                {profile.name ? profile.name[0].toUpperCase() : 'U'}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Nav items ─── */}
+        <nav
+          className={`flex-1 overflow-y-auto py-3 space-y-0.5 flex-shrink-0
+            ${collapsed && !isDrawer ? 'px-2' : 'px-3'}
+          `}
+          aria-label="Main navigation"
+        >
+          {navItems.map((item) => (
+            <NavItemRow
+              key={item.path}
+              {...item}
+              collapsed={collapsed && !isDrawer}
+              onClick={isDrawer ? onClose : undefined}
+            />
+          ))}
+        </nav>
+
+        {/* ── Bottom CTA / Auth ─── */}
+        <div className={`pb-4 pt-3 border-t border-gray-100 flex-shrink-0
+          ${collapsed && !isDrawer ? 'px-2' : 'px-4'}
+        `}>
+          {isAuthenticated && cta ? (
+            <>
+              {(!collapsed || isDrawer) && (
+                <div
+                  className="rounded-2xl p-4 mb-3"
+                  style={{ background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', border: '1px solid #BBF7D0' }}
+                >
+                  <p className="text-xs font-bold text-green-800 mb-0.5">{cta.title}</p>
+                  <p className="text-xs text-green-700 mb-3 leading-relaxed">{cta.desc}</p>
+                  <button
+                    className="w-full text-xs font-semibold text-white rounded-xl py-2 transition-opacity hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
+                  >
+                    {cta.btnLabel}
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={handleSignOut}
+                className={`text-xs font-medium text-gray-400 hover:text-red-500 transition-colors py-1 w-full
+                  ${collapsed && !isDrawer ? 'text-center' : 'text-left px-1'}
+                `}
+              >
+                {collapsed && !isDrawer ? '↩' : 'Sign out'}
+              </button>
+            </>
+          ) : (
+            /* Guest CTA */
+            (!collapsed || isDrawer) ? (
+              <div
+                className="rounded-2xl p-4"
+                style={{ background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', border: '1px solid #BBF7D0' }}
+              >
+                <p className="text-xs font-bold text-green-800 mb-0.5">Join SkillSeekho</p>
+                <p className="text-xs text-green-700 mb-3 leading-relaxed">
+                  Find local teachers, share your skills, or hire professionals.
+                </p>
+                <button
+                  onClick={() => { navigate('/auth'); onClose(); }}
+                  className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-white rounded-xl py-2 transition-opacity hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
+                >
+                  <LogIn size={13} />
+                  Login / Sign Up
+                </button>
+              </div>
+            ) : (
+              /* Collapsed guest: icon login button */
+              <button
+                onClick={() => { navigate('/auth'); }}
+                className="w-11 h-11 mx-auto flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                aria-label="Login / Sign Up"
+              >
+                <LogIn size={18} />
+              </button>
+            )
+          )}
+        </div>
+
+      </div>
+    );
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Desktop */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full bg-white border-r border-gray-100 z-30"
-        style={{ width: '260px' }}>
-        <SidebarContent />
-      </aside>
+      {/* ── Desktop collapsible sidebar ── */}
+      <motion.aside
+        animate={{ width: collapsed ? COLLAPSED_W : EXPANDED_W }}
+        transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+        className="hidden md:flex flex-col fixed left-0 top-0 h-full bg-white border-r border-gray-100 z-30 overflow-visible"
+        aria-label="Sidebar navigation"
+      >
+        <SidebarInner />
+      </motion.aside>
 
-      {/* Mobile drawer */}
+      {/* ── Mobile slide-out drawer ── */}
       <AnimatePresence>
         {mobileOpen && (
           <>
             <motion.div
               key="overlay"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 z-40 md:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
               onClick={onClose}
             />
             <motion.aside
               key="drawer"
-              initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 h-full bg-white z-50 md:hidden flex flex-col"
-              style={{ width: '260px' }}
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="fixed left-0 top-0 h-full bg-white z-50 md:hidden flex flex-col shadow-2xl"
+              style={{ width: EXPANDED_W }}
+              aria-label="Mobile navigation drawer"
             >
-              <SidebarContent />
+              <SidebarInner isDrawer />
             </motion.aside>
           </>
         )}

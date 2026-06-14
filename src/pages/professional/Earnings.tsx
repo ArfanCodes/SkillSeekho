@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Wallet, ArrowDownLeft, TrendingUp } from 'lucide-react';
+import { Wallet, ArrowDownLeft, TrendingUp, Eye, Key, DollarSign } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWallet, useTransactions } from '../../hooks/queries/useWallet';
 
@@ -76,7 +76,7 @@ export default function ProEarnings() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-3 mb-14">
           {credits.map((tx, i) => (
             <motion.div
               key={tx.id}
@@ -99,6 +99,106 @@ export default function ProEarnings() {
             </motion.div>
           ))}
         </div>
+
+        {/* ── ROYALTY DASHBOARD PREVIEW ────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="mb-6">
+            <h2 className="text-2xl font-black text-gray-900 mb-1" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              Royalty Dashboard Preview
+            </h2>
+            <p className="text-sm text-gray-500 font-medium">
+              A preview of your archive royalties, active licenses, and upcoming automated payouts.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="bg-gray-900 p-5 px-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <span className="text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded">
+                  PORTAL DEMO
+                </span>
+                <h4 className="font-bold text-base mt-2" style={{ color: '#ffffff' }}>
+                  {profile?.name ?? 'Your Name'} — Heritage Skill Practitioner
+                </h4>
+                <p className="text-xs text-gray-400 font-medium">Practitioner ID: #983-ART-KTL</p>
+              </div>
+              <span className="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-slate-300 font-medium">
+                Verified Wallet Connected
+              </span>
+            </div>
+
+            {/* Stats */}
+            <div className="p-6 grid grid-cols-2 lg:grid-cols-5 gap-4">
+              {[
+                { label: 'Archive Views',     val: '14,820',  sub: '+12.4% this month',             icon: <Eye size={15} /> },
+                { label: 'Active Licenses',   val: '8',       sub: '3 universities, 5 design firms', icon: <Key size={15} /> },
+                { label: 'Royalty Earnings',  val: '₹24,500', sub: '80% split rate active',          icon: <Wallet size={15} /> },
+                { label: 'Upcoming Payouts',  val: '₹4,200',  sub: 'Disburses in 3 days',            icon: <DollarSign size={15} /> },
+                { label: 'Engagement Growth', val: '+18.2%',  sub: 'Avg 4.8 min watch duration',     icon: <TrendingUp size={15} /> },
+              ].map((stat) => (
+                <div key={stat.label} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col justify-between">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{stat.label}</span>
+                    <div className="text-gray-400">{stat.icon}</div>
+                  </div>
+                  <div>
+                    <p className="text-xl font-extrabold text-gray-800 tracking-tight">{stat.val}</p>
+                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">{stat.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Transactions table */}
+            <div className="border-t border-gray-100 p-6 bg-gray-50/50">
+              <h5 className="font-bold text-xs text-gray-500 uppercase tracking-wider mb-4">
+                Recent Automatic Disbursements
+              </h5>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-500 font-medium min-w-[480px]">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-400">
+                      <th className="py-2.5 font-bold">Transaction Hash</th>
+                      <th className="py-2.5 font-bold">Skill Archive Title</th>
+                      <th className="py-2.5 font-bold">Source</th>
+                      <th className="py-2.5 font-bold">Payout</th>
+                      <th className="py-2.5 font-bold">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-gray-100 text-gray-700">
+                      <td className="py-3 font-mono text-emerald-600">0x8a92f...b3c</td>
+                      <td>Terracotta Pitcher Sculpting (V1)</td>
+                      <td>National Design Academy</td>
+                      <td className="font-bold">₹12,000</td>
+                      <td><span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">Paid</span></td>
+                    </tr>
+                    <tr className="border-b border-gray-100 text-gray-700">
+                      <td className="py-3 font-mono text-emerald-600">0x2f90a...d8e</td>
+                      <td>Wheel Centering Fundamentals</td>
+                      <td>Public Streaming (Views pool)</td>
+                      <td className="font-bold">₹8,300</td>
+                      <td><span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-100">Paid</span></td>
+                    </tr>
+                    <tr className="text-gray-700">
+                      <td className="py-3 font-mono text-emerald-600">0x5c72e...e9f</td>
+                      <td>Clay Mixing &amp; Maturation Ratio</td>
+                      <td>Craft Design Studio</td>
+                      <td className="font-bold">₹4,200</td>
+                      <td><span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-blue-100">Upcoming</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );
