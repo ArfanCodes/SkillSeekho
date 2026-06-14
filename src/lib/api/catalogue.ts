@@ -78,12 +78,31 @@ export async function nearbySkills(filters: SkillFilters = {}): Promise<SkillWit
       list = list.filter((item) => item.price_per_session <= filters.maxPrice!);
     }
     if (filters.search) {
-      const q = filters.search.toLowerCase();
-      list = list.filter((item) =>
-        item.title.toLowerCase().includes(q) ||
-        item.teacher_name?.toLowerCase().includes(q) ||
-        item.tags.some((t) => t.toLowerCase().includes(q))
-      );
+      // Mirror the nearby_skills() RPC: tokenize the query and match a skill
+      // when ANY meaningful word hits the title, description, a single tag,
+      // the teacher name, or the location.
+      const STOPWORDS = new Set([
+        'the','and','near','for','with','want','need','learn','learning',
+        'lesson','lessons','class','classes','teacher','teachers','coaching',
+        'tuition','tutor','under','around','close','find','please','some',
+        'looking','any','from','that','this','can','you','who','help',
+      ]);
+      const tokens = filters.search
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((t) => t.length >= 2 && !STOPWORDS.has(t));
+      if (tokens.length) {
+        list = list.filter((item) => {
+          const hay = [
+            item.title,
+            item.description ?? '',
+            item.teacher_name ?? '',
+            item.location_name ?? '',
+            ...item.tags,
+          ].join(' ').toLowerCase();
+          return tokens.some((tok) => hay.includes(tok));
+        });
+      }
     }
     return list;
   }
@@ -110,6 +129,34 @@ export async function getSkill(id: string): Promise<SkillWithTeacher | null> {
   const { data, error } = await supabase.rpc('nearby_skills', { p_search: null });
   if (error) throw new Error(error.message);
   return ((data ?? []) as SkillWithTeacher[]).find((s) => s.id === id) ?? null;
+}
+
+// ── Teacher aggregate stats (dashboard) ───────
+
+export interface TeacherStats {
+  avgRating: number;
+  reviewCount: number;
+  vouchCount: number;
+}
+
+export async function getTeacherStats(teacherId: string): Promise<TeacherStats> {
+  if (checkMockMode()) return { avgRating: 0, reviewCount: 0, vouchCount: 0 };
+
+  const [{ data: reviews }, { data: vouch }] = await Promise.all([
+    supabase.from('reviews').select('rating').eq('teacher_id', teacherId),
+    supabase.from('teacher_vouch_counts').select('vouch_count').eq('teacher_id', teacherId).maybeSingle(),
+  ]);
+
+  const ratings = (reviews ?? []) as { rating: number }[];
+  const avg = ratings.length
+    ? Math.round((ratings.reduce((s, r) => s + r.rating, 0) / ratings.length) * 10) / 10
+    : 0;
+
+  return {
+    avgRating:   avg,
+    reviewCount: ratings.length,
+    vouchCount:  (vouch as { vouch_count: number } | null)?.vouch_count ?? 0,
+  };
 }
 
 // ── Teacher's own skills (MySkills CRUD) ──────

@@ -63,7 +63,7 @@ export async function listConversations(userId: string): Promise<ConversationWit
     const other = profileMap.get(otherId);
     const msgs = (c.messages ?? []) as Array<{ content: string; read: boolean; sender_id: string; created_at: string }>;
     const sorted = [...msgs].sort((a, b) => a.created_at.localeCompare(b.created_at));
-    const lastMsg = sorted.at(-1);
+    const lastMsg = sorted[sorted.length - 1];
     const unreadCount = msgs.filter((m) => !m.read && m.sender_id !== userId).length;
 
     return {

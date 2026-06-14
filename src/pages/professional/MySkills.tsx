@@ -58,8 +58,16 @@ export default function ProSkills() {
                     : <Star size={20} className="text-green-500" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{s.title}</p>
-                  <p className="text-xs text-gray-500">₹{s.price_per_session} / session · {s.location_name ?? 'No location'}{!s.active && ' · hidden'}</p>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="font-semibold text-gray-900 truncate">{s.title}</p>
+                    {s.active
+                      ? <span className="flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />Live
+                        </span>
+                      : <span className="flex-shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ backgroundColor: '#F9FAFB', color: '#9CA3AF', border: '1px solid #E5E7EB' }}>Hidden</span>
+                    }
+                  </div>
+                  <p className="text-xs text-gray-500">₹{s.price_per_session} / session · {s.location_name ?? 'No location'}</p>
                 </div>
                 <button onClick={() => openEdit(s)} className="p-2 text-gray-400 hover:text-gray-700 transition-colors"><Pencil size={16} /></button>
                 <button onClick={() => { if (confirm(`Delete "${s.title}"?`)) del.mutate(s.id); }}

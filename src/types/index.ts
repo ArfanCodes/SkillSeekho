@@ -265,6 +265,51 @@ export interface Job {
   urgent: boolean;
 }
 
+// ── Employer Job Postings (real, backed) ──────
+
+export type JobPostingType = 'full-time' | 'part-time' | 'contract' | 'freelance';
+export type JobStatus = 'open' | 'closed';
+export type ApplicationStatus = 'applied' | 'shortlisted' | 'rejected';
+
+export interface JobPosting {
+  id: string;
+  employer_id: string;
+  category_id: string | null;
+  title: string;
+  description: string | null;
+  job_type: JobPostingType;
+  pay_min: number | null;
+  pay_max: number | null;
+  location_name: string | null;
+  status: JobStatus;
+  created_at: string;
+}
+
+export interface JobWithMeta extends JobPosting {
+  employer_name: string | null;
+  employer_company: string | null;
+  category_name: string | null;
+  application_count: number;
+  // present when the current viewer (teacher) has applied
+  my_application_status: ApplicationStatus | null;
+}
+
+export interface JobApplication {
+  id: string;
+  job_id: string;
+  teacher_id: string;
+  note: string | null;
+  status: ApplicationStatus;
+  created_at: string;
+}
+
+export interface JobApplicationWithTeacher extends JobApplication {
+  teacher_name: string | null;
+  teacher_avatar_url: string | null;
+  teacher_bio: string | null;
+  teacher_location: string | null;
+}
+
 // ── Voice Pipeline ────────────────────────────
 
 export interface SearchIntent {
@@ -281,6 +326,8 @@ export interface ListingIntent {
   category_slug: string;
   price_per_session: number;
   tags: string[];
+  languages: string[];
+  location_name: string | null;
   availability: string | null;
   description: string | null;
 }

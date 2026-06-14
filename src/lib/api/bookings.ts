@@ -82,6 +82,12 @@ export async function updateBookingStatus(id: string, status: BookingStatus): Pr
   if (error) throw new Error(error.message);
 }
 
+// Teacher accepts a booking → confirm + credit the teacher's wallet, atomically.
+export async function confirmBooking(id: string): Promise<void> {
+  const { error } = await supabase.rpc('confirm_booking', { p_booking_id: id });
+  if (error) throw new Error(error.message);
+}
+
 // ── Internal: flatten joined response ─────────
 
 function flattenBooking(row: Record<string, unknown>): BookingWithDetails {

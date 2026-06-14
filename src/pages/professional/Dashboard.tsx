@@ -5,7 +5,7 @@ import {
   CalendarCheck, Star, Wallet, Users, Plus, Pencil, Trash2, ArrowRight, Mic,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useTeacherSkills, useDeleteSkill } from '../../hooks/queries/useCatalogue';
+import { useTeacherSkills, useDeleteSkill, useTeacherStats } from '../../hooks/queries/useCatalogue';
 import { useTeacherBookings } from '../../hooks/queries/useBookings';
 import { useWallet } from '../../hooks/queries/useWallet';
 import BookingCard from '../../components/BookingCard';
@@ -29,6 +29,7 @@ export default function ProDashboard() {
   const { data: skills = [], isLoading: skillsLoading } = useTeacherSkills(teacherId);
   const { data: bookings = [] } = useTeacherBookings(teacherId);
   const { data: wallet } = useWallet(profile?.id);
+  const { data: stats } = useTeacherStats(teacherId);
   const del = useDeleteSkill(teacherId);
 
   const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
@@ -62,10 +63,10 @@ export default function ProDashboard() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="grid grid-cols-4 gap-3 mb-8">
         {[
-          { icon: CalendarCheck, label: 'Bookings', value: String(totalBookings),         color: '#3B82F6', bg: '#EFF6FF' },
-          { icon: Wallet,        label: 'Earned',   value: `₹${earnedRupees}`,            color: '#22C55E', bg: '#F0FDF4' },
-          { icon: Star,          label: 'Rating',   value: '—',                           color: '#F59E0B', bg: '#FFFBEB' },
-          { icon: Users,         label: 'Vouches',  value: String(profile?.verified ? '✓' : '0'), color: '#EC4899', bg: '#FDF2F8' },
+          { icon: CalendarCheck, label: 'Bookings', value: String(totalBookings),                       color: '#3B82F6', bg: '#EFF6FF' },
+          { icon: Wallet,        label: 'Earned',   value: `₹${earnedRupees}`,                          color: '#22C55E', bg: '#F0FDF4' },
+          { icon: Star,          label: 'Rating',   value: stats && stats.reviewCount > 0 ? String(stats.avgRating) : '—', color: '#F59E0B', bg: '#FFFBEB' },
+          { icon: Users,         label: 'Vouches',  value: String(stats?.vouchCount ?? 0),              color: '#EC4899', bg: '#FDF2F8' },
         ].map(({ icon: Icon, label, value, color, bg }, i) => (
           <motion.div key={label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.06 + i * 0.05 }}

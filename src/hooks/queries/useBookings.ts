@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  requestBooking, getBooking, getLearnerBookings, getTeacherBookings, updateBookingStatus,
+  requestBooking, getBooking, getLearnerBookings, getTeacherBookings,
+  updateBookingStatus, confirmBooking,
 } from '../../lib/api/bookings';
 import type { BookingStatus } from '../../types';
 
@@ -49,6 +50,20 @@ export function useUpdateBookingStatus() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['teacher-bookings'] });
       qc.invalidateQueries({ queryKey: ['learner-bookings'] });
+    },
+  });
+}
+
+// Teacher accepts → confirm booking + wallet payout (server-side, atomic)
+export function useConfirmBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => confirmBooking(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['teacher-bookings'] });
+      qc.invalidateQueries({ queryKey: ['learner-bookings'] });
+      qc.invalidateQueries({ queryKey: ['wallet'] });
+      qc.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }

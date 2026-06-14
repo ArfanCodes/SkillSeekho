@@ -5,7 +5,7 @@ import {
   Home, Compass, Mic, Heart, Archive, CreditCard,
   MessageSquare, User, Zap, X,
   LayoutDashboard, Star, CalendarCheck, Wallet,
-  PlusSquare, Users, ListChecks, LogIn, ChevronLeft, ChevronRight,
+  PlusSquare, Users, ListChecks, LogIn, ChevronLeft, ChevronRight, Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { signOut } from '../lib/api/auth';
@@ -33,7 +33,6 @@ const customerNav: NavItem[] = [
   { path: '/discover', label: 'Discover Skills', icon: Compass       },
   { path: '/voice',    label: 'Voice Search',    icon: Mic           },
   { path: '/archive',  label: 'Skill Archive',   icon: Archive       },
-  { path: '/profile',  label: 'Profile',         icon: User          },
   { path: '/payments', label: 'Payments',        icon: CreditCard    },
   { path: '/messages', label: 'Messages',        icon: MessageSquare },
 ];
@@ -43,8 +42,8 @@ const professionalNav: NavItem[] = [
   { path: '/pro/skills',   label: 'My Skills',       icon: Star            },
   { path: '/pro/bookings', label: 'Manage Bookings', icon: CalendarCheck   },
   { path: '/pro/earnings', label: 'Earnings',        icon: Wallet          },
+  { path: '/jobs',         label: 'Find Jobs',       icon: Briefcase       },
   { path: '/messages',     label: 'Messages',        icon: MessageSquare   },
-  { path: '/profile',      label: 'Profile',         icon: User            },
 ];
 
 const employerNav: NavItem[] = [
@@ -53,7 +52,6 @@ const employerNav: NavItem[] = [
   { path: '/employer/teachers', label: 'Browse Teachers', icon: Users           },
   { path: '/employer/jobs',     label: 'My Jobs',         icon: ListChecks      },
   { path: '/messages',          label: 'Messages',        icon: MessageSquare   },
-  { path: '/profile',           label: 'Profile',         icon: User            },
 ];
 
 const roleNavMap: Record<UserRole, NavItem[]> = {
@@ -186,6 +184,7 @@ interface SidebarProps {
 // ── Main Sidebar ──────────────────────────────────────────────────────────────
 export default function Sidebar({ mobileOpen, onClose, onCollapsedChange }: SidebarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, role, profile } = useAuth();
 
   // Persist collapse state
@@ -278,52 +277,6 @@ export default function Sidebar({ mobileOpen, onClose, onCollapsedChange }: Side
           )}
         </div>
 
-        {/* ── Profile chip ─── */}
-        {isAuthenticated && profile && (!collapsed || isDrawer) && (
-          <div className="mx-3 mt-4 px-3.5 py-3 rounded-2xl bg-gray-50 border border-gray-100 flex items-center gap-3 flex-shrink-0">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name ?? 'User'}
-                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-200 flex-shrink-0"
-              />
-            ) : (
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
-              >
-                {profile.name ? profile.name[0].toUpperCase() : 'U'}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-gray-800 truncate leading-snug">{profile.name ?? 'Set up profile'}</p>
-              {profile.verified && (
-                <span className="text-[10px] text-emerald-600 font-semibold">✓ Verified</span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Collapsed avatar (icon-only) */}
-        {isAuthenticated && profile && collapsed && !isDrawer && (
-          <div className="flex justify-center mt-4 mb-1 flex-shrink-0">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.name ?? 'User'}
-                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-300"
-              />
-            ) : (
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
-              >
-                {profile.name ? profile.name[0].toUpperCase() : 'U'}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* ── Nav items ─── */}
         <nav
           className={`flex-1 overflow-y-auto py-3 space-y-0.5 flex-shrink-0
@@ -341,8 +294,49 @@ export default function Sidebar({ mobileOpen, onClose, onCollapsedChange }: Side
           ))}
         </nav>
 
+        {/* ── Profile chip (bottom) ─── */}
+        {isAuthenticated && profile && (
+          <div className={`pt-3 border-t border-gray-100 flex-shrink-0
+            ${collapsed && !isDrawer ? 'px-2' : 'px-3'}
+          `}>
+            <NavLink
+              to="/profile"
+              onClick={isDrawer ? onClose : undefined}
+              className={`flex items-center rounded-2xl transition-colors
+                ${collapsed && !isDrawer ? 'justify-center w-11 h-11 mx-auto' : 'gap-3 px-3 py-2.5'}
+                ${location.pathname.startsWith('/profile')
+                  ? 'bg-emerald-50 border border-emerald-200'
+                  : 'bg-gray-50 border border-gray-100 hover:bg-gray-100'}
+              `}
+            >
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.name ?? 'User'}
+                  className="w-9 h-9 rounded-full object-cover border-2 border-emerald-200 flex-shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}
+                >
+                  {profile.name ? profile.name[0].toUpperCase() : 'U'}
+                </div>
+              )}
+              {(!collapsed || isDrawer) && (
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-gray-800 truncate leading-snug">{profile.name ?? 'Set up profile'}</p>
+                  {profile.verified
+                    ? <span className="text-[10px] text-emerald-600 font-semibold">✓ Verified</span>
+                    : <span className="text-[10px] text-gray-400 font-medium">View profile</span>}
+                </div>
+              )}
+            </NavLink>
+          </div>
+        )}
+
         {/* ── Bottom CTA / Auth ─── */}
-        <div className={`pb-4 pt-3 border-t border-gray-100 flex-shrink-0
+        <div className={`pb-4 pt-3 flex-shrink-0
           ${collapsed && !isDrawer ? 'px-2' : 'px-4'}
         `}>
           {isAuthenticated && cta ? (

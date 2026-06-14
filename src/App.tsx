@@ -24,6 +24,7 @@ import Payments from './pages/Payments';
 import Messages from './pages/Messages';
 import Profile  from './pages/Profile';
 import MessagesDeep from './pages/MessagesDeep';
+import JobBoard from './pages/JobBoard';
 
 // Professional pages
 import ProDashboard from './pages/professional/Dashboard';
@@ -131,6 +132,7 @@ function AppRoutes() {
         <Route path="/pro/skills"   element={<ProSkills />} />
         <Route path="/pro/bookings" element={<ProBookings />} />
         <Route path="/pro/earnings" element={<ProEarnings />} />
+        <Route path="/jobs"         element={<JobBoard />} />
 
         {/* Employer */}
         <Route path="/employer"          element={<EmpDashboard />} />

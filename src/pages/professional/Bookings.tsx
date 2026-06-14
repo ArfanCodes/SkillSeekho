@@ -4,7 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { CalendarCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useTeacherBookings, useUpdateBookingStatus } from '../../hooks/queries/useBookings';
+import { useTeacherBookings, useUpdateBookingStatus, useConfirmBooking } from '../../hooks/queries/useBookings';
 import { getOrCreateConversation } from '../../lib/api/messages';
 import BookingCard from '../../components/BookingCard';
 import type { BookingStatus } from '../../types';
@@ -21,6 +21,7 @@ export default function ProBookings() {
   const navigate = useNavigate();
   const { data: bookings = [], isLoading } = useTeacherBookings(profile?.id);
   const { mutate: updateStatus } = useUpdateBookingStatus();
+  const { mutate: confirmBooking } = useConfirmBooking();
   const [tab, setTab] = useState<BookingStatus | 'all'>('all');
 
   const filtered = tab === 'all' ? bookings : bookings.filter((b) => b.status === tab);
@@ -97,7 +98,7 @@ export default function ProBookings() {
               booking={booking}
               teacherView
               index={i}
-              onAccept={(id) => updateStatus({ id, status: 'confirmed' })}
+              onAccept={(id) => confirmBooking(id)}
               onCancel={(id) => updateStatus({ id, status: 'cancelled' })}
               onMessage={handleMessage}
             />

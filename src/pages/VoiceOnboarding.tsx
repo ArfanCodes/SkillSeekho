@@ -161,7 +161,10 @@ export default function VoicePage() {
   async function handleFindSkills() {
     setResultsStatus('searching');
     const cat = categories.find((c) => c.slug === intent?.category_slug);
-    const q   = [editSkill.trim(), editArea.trim()].filter(Boolean).join(' ');
+    // Search by the skill phrase only — the RPC tokenizes it and matches any
+    // word against title/description/tags. Area is handled by geo radius, and
+    // appending it to the text query was what broke matching before.
+    const q = editSkill.trim() || editArea.trim();
     try {
       const data = await nearbySkills({
         lat:        geo.lat,
@@ -323,17 +326,23 @@ export default function VoicePage() {
                   className="relative w-32 h-32 rounded-full flex items-center justify-center text-white focus:outline-none active:scale-95 transition-transform"
                   style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
                   aria-label="Stop recording">
+                  {/* Outer ring reacts to mic loudness */}
                   <motion.span className="absolute inset-0 rounded-full pointer-events-none"
                     style={{ backgroundColor: 'rgba(239,68,68,0.3)' }}
-                    animate={{ scale: [1, 1.28, 1], opacity: [0.7, 0, 0.7] }}
-                    transition={{ repeat: Infinity, duration: 1.1, ease: 'easeInOut' }} />
-                  <div className="flex items-center gap-1.5 relative z-10">
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <motion.div key={i} className="w-1.5 rounded-full bg-white"
-                        style={{ height: 10 }}
-                        animate={{ height: ['10px', '30px', '10px'] }}
-                        transition={{ repeat: Infinity, duration: 0.65, delay: i * 0.11, ease: 'easeInOut' }} />
-                    ))}
+                    animate={{ scale: 1 + rec.level * 0.5, opacity: 0.35 + rec.level * 0.5 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 18 }} />
+                  {/* Live waveform bars driven by mic level */}
+                  <div className="flex items-center gap-1.5 relative z-10" style={{ height: 36 }}>
+                    {[0, 1, 2, 3, 4].map((i) => {
+                      // Each bar weighted differently so the centre reacts most
+                      const weight = [0.55, 0.8, 1, 0.8, 0.55][i];
+                      const h = 8 + rec.level * 34 * weight;
+                      return (
+                        <motion.div key={i} className="w-1.5 rounded-full bg-white"
+                          animate={{ height: Math.max(8, h) }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 20 }} />
+                      );
+                    })}
                   </div>
                 </motion.button>
               )}

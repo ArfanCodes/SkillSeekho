@@ -43,6 +43,8 @@ Return ONLY a JSON object with these exact fields:
   "category_slug": "<one of: ${CATEGORY_SLUGS.join(", ")}>",
   "price_per_session": <whole number INR, infer ₹200-₹2000 if not stated>,
   "tags": ["<2-5 short English keywords>"],
+  "languages": ["<languages they will teach in, English names: Hindi, English, Kannada, Tamil, Telugu, Marathi, Bengali, Urdu, Malayalam — empty array if not mentioned>"],
+  "location_name": "<the neighbourhood/area/city in India where they teach, e.g. 'Koramangala, Bangalore' — or null if not mentioned>",
   "availability": "<string or null>",
   "description": "<1-2 sentence English description or null>"
 }`,

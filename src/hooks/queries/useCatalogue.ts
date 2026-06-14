@@ -1,12 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  listCategories, nearbySkills, getSkill, getTeacherSkills,
+  listCategories, nearbySkills, getSkill, getTeacherSkills, getTeacherStats,
   createSkill, updateSkill, deleteSkill,
   listSkillReviews, listTeacherReviews, createReview, vouchForTeacher, unvouchTeacher,
   getCatalogueStats, listRecentReviews,
   type SkillInput,
 } from '../../lib/api/catalogue';
 import type { SkillFilters } from '../../types';
+
+export function useTeacherStats(teacherId: string | undefined) {
+  return useQuery({
+    queryKey: ['teacher-stats', teacherId],
+    queryFn:  () => getTeacherStats(teacherId as string),
+    enabled:  !!teacherId,
+    staleTime: 1000 * 60,
+  });
+}
 
 export function useCategories() {
   return useQuery({ queryKey: ['categories'], queryFn: listCategories, staleTime: 1000 * 60 * 10 });
@@ -25,6 +34,13 @@ export function useNearbySkills(filters: SkillFilters, enabled = true) {
     queryKey: ['skills', filters],
     queryFn: () => nearbySkills(filters),
     enabled,
+    // The catalogue is shared across teachers and learners. A teacher's
+    // mutation can't invalidate a learner's separate session, so refetch the
+    // list whenever the learner opens or returns to the page — that way a
+    // newly published skill shows up promptly instead of after the 5-min cache.
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 }
 

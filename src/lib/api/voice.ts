@@ -97,6 +97,8 @@ export async function extractIntent(
         category_slug: 'music',
         price_per_session: 400,
         tags: ['Acoustic', 'Bollywood', 'Beginners'],
+        languages: ['Hindi', 'English'],
+        location_name: 'Koramangala, Bangalore',
         availability: 'Weekends',
         description: 'Learn acoustic and Bollywood guitar from scratch.',
       } satisfies VoiceIntent;

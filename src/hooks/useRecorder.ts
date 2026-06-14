@@ -6,6 +6,8 @@ export interface RecorderState {
   status: RecorderStatus;
   audioBlob: Blob | null;
   durationMs: number;
+  /** Live mic loudness 0..1 while recording (for waveform visualisations). */
+  level: number;
   errorMsg: string | null;
   start: () => Promise<void>;
   stop: () => void;
@@ -29,6 +31,7 @@ export function useRecorder(): RecorderState {
   const [status, setStatus] = useState<RecorderStatus>('idle');
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [durationMs, setDurationMs] = useState(0);
+  const [level, setLevel] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const mrRef = useRef<MediaRecorder | null>(null);
@@ -38,6 +41,53 @@ export function useRecorder(): RecorderState {
   const startTimeRef = useRef(0);
   const mimeRef = useRef('');
   const abortRef = useRef(false);
+
+  // Web Audio analyser for live loudness
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const stopMeter = useCallback(() => {
+    if (rafRef.current != null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    if (analyserRef.current) { analyserRef.current.disconnect(); analyserRef.current = null; }
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {});
+      audioCtxRef.current = null;
+    }
+    setLevel(0);
+  }, []);
+
+  const startMeter = useCallback((stream: MediaStream) => {
+    try {
+      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+      audioCtxRef.current = ctx;
+      analyserRef.current = analyser;
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const tick = () => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getByteTimeDomainData(data);
+        // RMS around the 128 midpoint → 0..1
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        // Boost a little so normal speech reads ~0.3-0.8
+        setLevel(Math.min(1, rms * 2.4));
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    } catch {
+      /* analyser is best-effort; recording still works without it */
+    }
+  }, []);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -63,6 +113,7 @@ export function useRecorder(): RecorderState {
   const reset = useCallback(() => {
     abortRef.current = true;
     clearTimer();
+    stopMeter();
     if (mrRef.current && mrRef.current.state === 'recording') {
       mrRef.current.stop();
     }
@@ -118,6 +169,7 @@ export function useRecorder(): RecorderState {
       mr.onstop = () => {
         if (abortRef.current) return;
         clearTimer();
+        stopMeter();
         const finalDuration = Date.now() - startTimeRef.current;
         const blob = new Blob(chunksRef.current, { type: mimeRef.current || 'audio/webm' });
         setAudioBlob(blob);
@@ -136,6 +188,7 @@ export function useRecorder(): RecorderState {
 
       startTimeRef.current = Date.now();
       mr.start(200);
+      startMeter(stream);
       setStatus('recording');
 
       timerRef.current = setInterval(() => {
@@ -155,16 +208,17 @@ export function useRecorder(): RecorderState {
       setErrorMsg(msg);
       setStatus('error');
     }
-  }, [clearTimer, releaseStream]);
+  }, [clearTimer, releaseStream, startMeter, stopMeter]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       abortRef.current = true;
       clearTimer();
+      stopMeter();
       releaseStream();
     };
-  }, [clearTimer, releaseStream]);
+  }, [clearTimer, releaseStream, stopMeter]);
 
-  return { status, audioBlob, durationMs, errorMsg, start, stop, reset };
+  return { status, audioBlob, durationMs, level, errorMsg, start, stop, reset };
 }
