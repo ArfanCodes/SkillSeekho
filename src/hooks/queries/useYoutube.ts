@@ -204,7 +204,7 @@ const MOCK_VIDEOS: Record<string, YoutubeVideo[]> = {
   ],
 };
 
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY || 'AIzaSyAYAjjdKYn0OF86we0hCzugB5VGjkGBwn8';
+const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
 export function useYoutubeVideos(category: string) {
   return useQuery({
